@@ -10,6 +10,12 @@ pub struct RestorePoint<'a> {
     data : &'a [(usize, char)] 
 }
 
+pub struct StringWithMeta {
+    start : usize,
+    end : usize,
+    value : String,
+}
+
 impl<'a> Input<'a> {
 
     pub fn new(input : &'a [(usize, char)] ) -> Input<'a> { 
@@ -63,17 +69,20 @@ impl<'a> Input<'a> {
         Ok(())
     }
 
-    pub fn parse_symbol(&mut self) -> Result<String, ParseError> {
+    pub fn parse_symbol(&mut self) -> Result<StringWithMeta, ParseError> {
         self.clear()?;
 
         let mut d = self.data;
         let mut cs = vec![];
+        let mut start = 0;
+        let mut end = 0;
 
         match d {
             [] => return Err(ParseError::EndOfFile("parse_symbol".to_string())),
-            [(_, x), rest @ ..] if x.is_alphabetic() || *x == '_' => {
+            [(i, x), rest @ ..] if x.is_alphabetic() || *x == '_' => {
                 d = rest;
                 cs.push(x);
+                start = *i;
             },
             [(i, x), ..] => return Err(ParseError::ErrorAt(*i, format!("Encountered {} in parse_symbol", x))),
         }
@@ -81,9 +90,10 @@ impl<'a> Input<'a> {
         loop {
             match d {
                 [] => break,
-                [(_, x), rest @ ..] if x.is_alphanumeric() || *x == '_' => {
+                [(i, x), rest @ ..] if x.is_alphanumeric() || *x == '_' => {
                     d = rest;
                     cs.push(x);
+                    end = *i;
                 },
                 [_, ..] => break,
             }
@@ -252,7 +262,9 @@ mod test {
     #[test]
     fn should_parse_symbol() -> Result<(), ParseError> {
         let mut input = Input { data: &"_Symbol_123".char_indices().collect::<Vec<(usize, char)>>() };
-        let symbol = input.parse_symbol()?;
+        let StringWithMeta { start, end, value: symbol } = input.parse_symbol()?;
+        assert_eq!( start, 0 );
+        assert_eq!( end, 10 );
         assert_eq!( symbol, "_Symbol_123" );
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
