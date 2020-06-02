@@ -80,7 +80,7 @@ impl<'a> Input<'a> {
 
         loop {
             match d {
-                [] => return Err(ParseError::EndOfFile("parse_symbol".to_string())),
+                [] => break,
                 [(_, x), rest @ ..] if x.is_alphanumeric() || *x == '_' => {
                     d = rest;
                     cs.push(x);
@@ -113,7 +113,7 @@ impl<'a> Input<'a> {
 
         loop {
             match d {
-                [] => return Err(ParseError::EndOfFile("parse_number".to_string())),
+                [] => break, 
                 [(_, x), rest @ ..] if x.is_numeric() 
                                     || *x == '.' 
                                     || *x == '-' 
@@ -251,10 +251,10 @@ mod test {
 
     #[test]
     fn should_parse_symbol() -> Result<(), ParseError> {
-        let mut input = Input { data: &"_Symbol_123 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"_Symbol_123".char_indices().collect::<Vec<(usize, char)>>() };
         let symbol = input.parse_symbol()?;
         assert_eq!( symbol, "_Symbol_123" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
@@ -300,84 +300,84 @@ mod test {
 
     #[test]
     fn should_parse_int() -> Result<(), ParseError> {
-        let mut input = Input { data: &"1234 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"1234".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_number()?;
         assert_eq!( number, "1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_float() -> Result<(), ParseError> {
-        let mut input = Input { data: &"12.34 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"12.34".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_number()?;
         assert_eq!( number, "12.34" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_float_starting_with_dot() -> Result<(), ParseError> {
-        let mut input = Input { data: &".01 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &".01".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_number()?;
         assert_eq!( number, ".01" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_scientific_notation() -> Result<(), ParseError> {
-        let mut input = Input { data: &"1234e42.0 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"1234e42.0".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_number()?;
         assert_eq!( number, "1234e42.0" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_negative_scientific_notation() -> Result<(), ParseError> {
-        let mut input = Input { data: &"1234E-42 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"1234E-42".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_number()?;
         assert_eq!( number, "1234E-42" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_negative_int() -> Result<(), ParseError> {
-        let mut input = Input { data: &"-1234 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"-1234".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_number()?;
         assert_eq!( number, "-1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_string_with_whitespace() -> Result<(), ParseError> {
         let mut input = Input { data: &r#" /* */ " string with 123
-whitespace " "#.char_indices().collect::<Vec<(usize, char)>>() };
+whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_string()?;
         assert_eq!( number, " string with 123\nwhitespace " );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_string_with_escapes() -> Result<(), ParseError> {
-        let mut input = Input { data: &r#" /* */ "\\ \0 \n \r \t \"" "#.char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &r#" /* */ "\\ \0 \n \r \t \"""#.char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.parse_string()?;
         assert_eq!( number, "\\ \0 \n \r \t \"" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_restore() -> Result<(), ParseError> {
-        let mut input = Input { data: &"-1234 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"-1234".char_indices().collect::<Vec<(usize, char)>>() };
         let r = input.create_restore();
         let number = input.parse_number()?;
         assert_eq!( number, "-1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
 
         let number = input.parse_number();
         assert_eq!( matches!(number, Err(_)), true );
@@ -385,62 +385,72 @@ whitespace " "#.char_indices().collect::<Vec<(usize, char)>>() };
         input.restore(r);
         let number = input.parse_number()?;
         assert_eq!( number, "-1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(()) 
     }
 
     #[test]
     fn should_handle_multiple_restores() -> Result<(), ParseError> {
-        let mut input = Input { data: &"-1234 789 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"-1234 789".char_indices().collect::<Vec<(usize, char)>>() };
         let r1 = input.create_restore();
 
         let number = input.parse_number()?;
         assert_eq!( number, "-1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " 789 ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " 789".to_string() ); 
 
         let r2 = input.create_restore();
 
         let number = input.parse_number()?;
         assert_eq!( number, "789" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
 
         input.restore(r2);
 
         let number = input.parse_number()?;
         assert_eq!( number, "789" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
 
         input.restore(r1);
 
         let number = input.parse_number()?;
         assert_eq!( number, "-1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " 789 ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " 789".to_string() ); 
 
         let number = input.parse_number()?;
         assert_eq!( number, "789" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
 
         Ok(()) 
     }
 
     #[test]
     fn should_parse_maybe_parser() -> Result<(), ParseError> {
-        let mut input = Input { data: &"-1234 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"-1234".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.maybe(|i| i.parse_number())?.unwrap();
         assert_eq!( number, "-1234" );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 
     #[test]
     fn should_parse_maybe_parser_with_nothing() -> Result<(), ParseError> {
-        let mut input = Input { data: &"x ".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"x".char_indices().collect::<Vec<(usize, char)>>() };
         let number = input.maybe(|i| i.parse_number())?;
         match number {
             None => (),
             _ => panic!( "nothing should be parsed" ), 
         }
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "x ".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "x".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_zero_or_more_with_some_items() -> Result<(), ParseError> {
+        let mut input = Input { data: &"123 456".char_indices().collect::<Vec<(usize, char)>>() };
+        let numbers = input.zero_or_more(|i| i.parse_number())?;
+        assert_eq!( numbers.len(), 2 );
+        assert_eq!( numbers[0], "123" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
 }
