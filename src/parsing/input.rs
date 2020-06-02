@@ -454,4 +454,46 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
+
+    #[test]
+    fn should_parse_zero_or_more_with_no_items() -> Result<(), ParseError> {
+        let mut input = Input { data: &"".char_indices().collect::<Vec<(usize, char)>>() };
+        let numbers = input.zero_or_more(|i| i.parse_number())?;
+        assert_eq!( numbers.len(), 0 );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_one_or_more_with_some_items() -> Result<(), ParseError> {
+        let mut input = Input { data: &"123 456".char_indices().collect::<Vec<(usize, char)>>() };
+        let numbers = input.one_or_more(|i| i.parse_number())?;
+        assert_eq!( numbers.len(), 2 );
+        assert_eq!( numbers[0], "123" );
+        assert_eq!( numbers[1], "456" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_one_or_more_with_one_item() -> Result<(), ParseError> {
+        let mut input = Input { data: &"123".char_indices().collect::<Vec<(usize, char)>>() };
+        let numbers = input.one_or_more(|i| i.parse_number())?;
+        assert_eq!( numbers.len(), 1 );
+        assert_eq!( numbers[0], "123" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_fail_one_or_more_with_no_item() -> Result<(), ParseError> {
+        let mut input = Input { data: &"".char_indices().collect::<Vec<(usize, char)>>() };
+        let numbers = input.one_or_more(|i| i.parse_number());
+        match numbers {
+            Ok(_) => panic!( "one or more should fail on no items" ),
+            Err(_) => (),
+        }
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
 }
