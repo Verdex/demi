@@ -394,4 +394,25 @@ whitespace " "#.char_indices().collect::<Vec<(usize, char)>>() };
 
         Ok(()) 
     }
+
+    #[test]
+    fn should_parse_maybe_parser() -> Result<(), ParseError> {
+        let mut input = Input { data: &"-1234 ".char_indices().collect::<Vec<(usize, char)>>() };
+        let number = input.maybe(|i| i.parse_number())?.unwrap();
+        assert_eq!( number, "-1234" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), " ".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_maybe_parser_with_nothing() -> Result<(), ParseError> {
+        let mut input = Input { data: &"x ".char_indices().collect::<Vec<(usize, char)>>() };
+        let number = input.maybe(|i| i.parse_number())?;
+        match number {
+            None => (),
+            _ => panic!( "nothing should be parsed" ), 
+        }
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "x ".to_string() ); 
+        Ok(())
+    }
 }
