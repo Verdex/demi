@@ -450,6 +450,7 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
         let numbers = input.zero_or_more(|i| i.parse_number())?;
         assert_eq!( numbers.len(), 2 );
         assert_eq!( numbers[0], "123" );
+        assert_eq!( numbers[1], "456" );
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
