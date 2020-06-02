@@ -200,6 +200,13 @@ impl<'a> Input<'a> {
 
         Ok(cs.into_iter().collect::<String>())
     }
+
+    pub fn maybe<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Option<T>, ParseError> {
+        match parse(self) {
+            Ok(v) => Ok(Some(v)),
+            Err(_) => Ok(None),
+        }
+    }
 }
 
 #[cfg(test)]
