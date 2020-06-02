@@ -207,6 +207,34 @@ impl<'a> Input<'a> {
             Err(_) => Ok(None),
         }
     }
+
+    pub fn zero_or_more<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Vec<T>, ParseError> {
+        let mut items = vec![];
+
+        loop {
+            match parse(self) {
+                Ok(v) => items.push(v),
+                Err(_) => break,
+            }
+        }
+
+        Ok(items)
+    }
+
+    pub fn one_or_more<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Vec<T>, ParseError> {
+        let mut items = vec![];
+
+        items.push( parse(self)? );
+
+        loop {
+            match parse(self) {
+                Ok(v) => items.push(v),
+                Err(_) => break,
+            }
+        }
+
+        Ok(items)
+    }
 }
 
 #[cfg(test)]
