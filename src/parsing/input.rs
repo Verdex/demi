@@ -145,15 +145,20 @@ impl<'a> Input<'a> {
         Ok( Meta { start, end, value: cs.into_iter().collect::<String>() } )
     }
 
-    pub fn parse_string(&mut self) -> Result<String, ParseError> {
+    pub fn parse_string(&mut self) -> Result<Meta<String>, ParseError> {
         self.clear()?;
 
         let mut d = self.data;
         let mut cs = vec![];
+        let mut start = 0;
+        let mut end = 0;
 
         match d {
             [] => return Err(ParseError::EndOfFile("parse_string".to_string())),
-            [(_, '"'), rest @ ..] => d = rest,
+            [(i, '"'), rest @ ..] => {
+                d = rest;
+                start = *i;
+            },
             [(i, x), ..] => return Err(ParseError::ErrorAt(*i, format!("Encountered {} at the beginning of parse_string", x))),
         }
 
@@ -161,58 +166,69 @@ impl<'a> Input<'a> {
         loop {
             match d {
                 [] => return Err(ParseError::EndOfFile("parse_string".to_string())),
-                [(_, '\\'), rest @ ..] if escape => {
+                [(i, '\\'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\\');
+                    end = *i;
                 },
-                [(_, 'n'), rest @ ..] if escape => {
+                [(i, 'n'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\n');
+                    end = *i;
                 },
-                [(_, 'r'), rest @ ..] if escape => {
+                [(i, 'r'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\r');
+                    end = *i;
                 },
-                [(_, '0'), rest @ ..] if escape => {
+                [(i, '0'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\0');
+                    end = *i;
                 },
-                [(_, 't'), rest @ ..] if escape => {
+                [(i, 't'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\t');
+                    end = *i;
                 },
-                [(_, '"'), rest @ ..] if escape => {
+                [(i, '"'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('"');
+                    end = *i;
                 },
                 [(i, x), ..] if escape => return Err(ParseError::ErrorAt(*i, format!("Encountered unknown escape character {}", x))),
-                [(_, '\\'), rest @ ..] => {
+                [(i, '\\'), rest @ ..] => {
                     escape = true;
                     d = rest;
+                    end = *i;
                 },
                 [(_, '"'), ..] => break,
-                [(_, x), rest @ ..] => {
+                [(i, x), rest @ ..] => {
                     d = rest;
                     cs.push(*x);
+                    end = *i;
                 },
             }
         }
 
         match d {
             [] => return Err(ParseError::EndOfFile("parse_string".to_string())),
-            [(_, '"'), rest @ ..] => d = rest,
+            [(i, '"'), rest @ ..] => {
+                d = rest;
+                end = *i;
+            },
             [(i, x), ..] => return Err(ParseError::ErrorAt(*i, format!("Encountered {} at the ending of parse_string", x))),
         }
 
         self.data = d;
 
-        Ok(cs.into_iter().collect::<String>())
+        Ok( Meta { start, end, value: cs.into_iter().collect::<String>() } )
     }
 
     pub fn maybe<T>(&mut self, parse : fn(&mut Input) -> Result<Meta<T>, ParseError>) -> Result<Option<Meta<T>>, ParseError> {
@@ -384,7 +400,9 @@ mod test {
     fn should_parse_string_with_whitespace() -> Result<(), ParseError> {
         let mut input = Input { data: &r#" /* */ " string with 123
 whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
-        let number = input.parse_string()?;
+        let Meta { start, end, value: number } = input.parse_string()?;
+        assert_eq!( start, 7 );
+        assert_eq!( end, 36 );
         assert_eq!( number, " string with 123\nwhitespace " );
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
@@ -393,7 +411,9 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
     #[test]
     fn should_parse_string_with_escapes() -> Result<(), ParseError> {
         let mut input = Input { data: &r#" /* */ "\\ \0 \n \r \t \"""#.char_indices().collect::<Vec<(usize, char)>>() };
-        let number = input.parse_string()?;
+        let Meta { start, end, value: number } = input.parse_string()?;
+        assert_eq!( start, 7 );
+        assert_eq!( end, 25 );
         assert_eq!( number, "\\ \0 \n \r \t \"" );
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
