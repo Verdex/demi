@@ -1,5 +1,6 @@
 
-use super::parse_error::{ParseError};
+use super::ast::*;
+use super::parse_error::ParseError;
 
 pub struct Input<'a> {
     data : &'a [(usize, char)] 
@@ -8,12 +9,6 @@ pub struct Input<'a> {
 #[derive(Clone, Copy)]
 pub struct RestorePoint<'a> {
     data : &'a [(usize, char)] 
-}
-
-pub struct Meta<T> {
-    start : usize,
-    end : usize,
-    value : T,
 }
 
 impl<'a> Input<'a> {
