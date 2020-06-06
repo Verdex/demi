@@ -16,27 +16,27 @@ impl<'a> Input<'a> {
 
     */
 
-    fn parse_tuple_type(&mut self) -> Result<Meta<Type>, ParseError> {
+    fn parse_tuple_type(&mut self) -> Result<Type, ParseError> {
         
         Err(ParseError::EndOfFile("".to_string()))
     }
 
-    fn parse_fun_type(&mut self) -> Result<Meta<Type>, ParseError> {
+    fn parse_fun_type(&mut self) -> Result<Type, ParseError> {
 
         Err(ParseError::EndOfFile("".to_string()))
     }
 
-    fn parse_namespace_type(&mut self, initial : String) -> Result<(Vec<String>, String), ParseError> {
+    fn parse_namespace_type(&mut self, initial : PSym) -> Result<(Vec<PSym>, PSym), ParseError> {
 
         Err(ParseError::EndOfFile("".to_string()))
     }
 
-    fn parse_index_type(&mut self) -> Result<Type, ParseError> {
+    fn parse_index_type(&mut self, init : PSym) -> Result<Type, ParseError> {
 
         Err(ParseError::EndOfFile("".to_string()))
     }
     
-    pub fn parse_type(&mut self) -> Result<Meta<Type>, ParseError> {
+    pub fn parse_type(&mut self) -> Result<Type, ParseError> {
 
         match self.parse_tuple_type() {
             Ok(t) => return Ok(t),
@@ -48,26 +48,23 @@ impl<'a> Input<'a> {
             _ => (),
         }
 
-        let Meta { value: simple, start: first_start, end: first_end } = self.parse_symbol()?;
+        let simple = self.parse_symbol()?;
 
         match self.expect("::") {
             Ok(_) => {
                 let (namespace, symbol) = self.parse_namespace_type(simple)?;
                 match self.expect("<") {
                     Ok(_) => {
-                        let indices = self.parse_index_type()?;
-                        Ok(Type::Namespace(namespace, Type::Index(symbol, indices)))
+                        let index_type = self.parse_index_type(symbol)?;
+                        Ok(Type::Namespace(namespace, Box::new(index_type)))
                     },
-                    Err(_) => Ok(Type::Namespace(namespace, Type::Simple(symbol))),
+                    Err(_) => Ok(Type::Namespace(namespace, Box::new(Type::Simple(symbol)))),
                 }
             },
             Err(_) =>
                 match self.expect("<") {
-                    Ok(_) => {
-                        let indices = self.parse_index_type()?;
-                        Ok(Type::Index(simple, indices))
-                    },
-                    Err(_) => Ok(Meta { start: first_start, end: first_end, value: Type::Simple(simple) }),
+                    Ok(_) => Ok(self.parse_index_type(simple)?),
+                    Err(_) => Ok(Type::Simple(simple)),
                 },
         }
     }

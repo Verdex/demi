@@ -1,19 +1,19 @@
 
 #[derive(Debug)]
-pub struct Meta<T> {
+pub struct PSym {
     pub start : usize,
     pub end : usize,
-    pub value : T,
+    pub value : String,
 }
 
 #[derive(Debug)]
 pub enum Type {
     Unit,
-    Simple(String),
-    Index(String, Vec<Type>),
+    Simple(PSym),
+    Index(PSym, Vec<Type>),
     Fun { input : Vec<Type>, output : Box<Type> },
     Tuple(Vec<Type>),
-    Namespace(Vec<String>, Box<Type>),
+    Namespace(Vec<PSym>, Box<Type>),
     Infer,
 }
 
