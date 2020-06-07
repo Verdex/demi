@@ -18,6 +18,9 @@ impl<'a> Input<'a> {
 
     fn parse_tuple_type(&mut self) -> Result<Type, ParseError> {
         self.expect("(")?;
+        let types = self.list(|input| input.parse_type())?;
+
+
 
         
         Err(ParseError::EndOfFile("".to_string()))
@@ -76,9 +79,9 @@ impl<'a> Input<'a> {
 mod test {
     use super::*;
 
-    fn sym_proj( v : PSym ) -> String {
+    fn sym_proj( v : &PSym ) -> String {
         match v {
-            PSym { value, .. } => value,
+            PSym { value, .. } => value.to_string(),
         }
     }
 
@@ -134,9 +137,9 @@ mod test {
         };
 
         assert_eq!( names.len(), 3 );
-        assert_eq!( sym_proj(names[0]), "mod1" );
-        assert_eq!( sym_proj(names[1]), "mod2" );
-        assert_eq!( sym_proj(names[2]), "Trait" );
+        assert_eq!( sym_proj(&names[0]), "mod1" );
+        assert_eq!( sym_proj(&names[1]), "mod2" );
+        assert_eq!( sym_proj(&names[2]), "Trait" );
 
         let st_name = match *t {
             Type::Simple(PSym { value, .. }) => value,
@@ -184,16 +187,18 @@ mod test {
 
     #[test]
     fn should_parse_arrow_type() -> Result<(), ParseError> {
-        let i = "alpha -> beta ".char_indices().collect::<Vec<(usize, char)>>();
+        let i = "fun(alpha) -> beta ".char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_type()?;
 
-        let (input, output) = match u {
-            Type::Arrow { input, output } => (input, output), 
+        let (mut input, output) = match u {
+            Type::Fun { input, output } => (input, output), 
             _ => panic!("should be arrow type"),
         };
 
-        let i_name = match *input {
+        assert_eq!( input.len(), 1 );
+
+        let i_name = match input.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             _ => panic!("input type should be simple"),
         };
@@ -226,34 +231,40 @@ mod test {
 
     #[test]
     fn should_parse_arrow_past_arrow_parameter() -> Result<(), ParseError> {
-        let i = "a -> (b -> c) -> d ".char_indices().collect::<Vec<(usize, char)>>();
+        let i = "fun(a) -> fun(fun(b) -> c) -> d ".char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_type()?;
 
 
-        let (input_a, output_bc_etc) = match u {
-            Type::Arrow {input, output} => (*input, *output),
+        let (mut input_a, output_bc_etc) = match u {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("should be arrow type, but found: {:?}", x),
         };
 
-        let name = match input_a {
+        assert_eq!( input_a.len(), 1 );
+
+        let name = match input_a.pop().unwrap() {
             Type::Simple( PSym { value, .. }) => value,
             x => panic!("first input should be simple type, but found: {:?}", x),
         };
 
         assert_eq!( name, "a" );
 
-        let (input_bc, output_d) = match output_bc_etc {
-            Type::Arrow {input, output} => (*input, *output),
+        let (mut input_bc, output_d) = match output_bc_etc {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("first output should be arrow type, but found: {:?}", x),
         };
 
-        let (input_b, output_c) = match input_bc {
-            Type::Arrow {input, output} => (*input, *output),
+        assert_eq!( input_bc.len(), 1 );
+
+        let (mut input_b, output_c) = match input_bc.pop().unwrap() {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("second input should be arrow type, but found {:?}", x),
         };
 
-        let name = match input_b {
+        assert_eq!( input_b.len(), 1 );
+
+        let name = match input_b.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             x => panic!("second input input should be simple type, but found {:?}", x),
         };
@@ -279,45 +290,53 @@ mod test {
 
     #[test]
     fn should_parse_paren_arrows() -> Result<(), ParseError> {
-        let i = "a -> b -> (c -> d) -> ((e -> f) -> g) -> i ".char_indices().collect::<Vec<(usize, char)>>();
+        let i = "fun(a) -> fun(b) -> fun(fun(c) -> d) -> fun( fun( fun(e) -> f ) -> g ) -> i ".char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_type()?;
 
-        let (input_a, output_b_etc) = match u {
-            Type::Arrow{ input, output } => (*input, *output), 
+        let (mut input_a, output_b_etc) = match u {
+            Type::Fun { input, output } => (input, *output), 
             x => panic!("should be arrow type, but found {:?}", x),
         };
 
-        let name = match input_a {
+        assert_eq!( input_a.len(), 1 );
+
+        let name = match input_a.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             x => panic!("input_a should be simple type, but found: {:?}", x),
         };
 
         assert_eq!(name, "a");
 
-        let (input_b, output_cd_etc) = match output_b_etc {
-            Type::Arrow { input, output } => (*input, *output),
+        let (mut input_b, output_cd_etc) = match output_b_etc {
+            Type::Fun { input, output } => (input, *output),
             x => panic!("input_b_etc should be arrow type, but found: {:?}", x),
         };
 
-        let name = match input_b {
+        assert_eq!( input_b.len(), 1 );
+
+        let name = match input_b.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             x => panic!("input_b should be simple type, but found: {:?}", x),
         };
         
         assert_eq!(name, "b");
 
-        let (input_cd, output_efg_etc) = match output_cd_etc {
-            Type::Arrow { input, output } => (*input, *output),
+        let (mut input_cd, output_efg_etc) = match output_cd_etc {
+            Type::Fun { input, output } => (input, *output),
             x => panic!("output_cd_etc should be arrow type, but found: {:?}", x),
         };
 
-        let (input_c, output_d) = match input_cd {
-            Type::Arrow { input, output } => (*input, *output),
+        assert_eq!( input_cd.len(), 1 );
+
+        let (mut input_c, output_d) = match input_cd.pop().unwrap() {
+            Type::Fun { input, output } => (input, *output),
             x => panic!("input_cd should be arrow type, but found: {:?}", x),
         };
 
-        let name = match input_c {
+        assert_eq!( input_c.len(), 1 );
+
+        let name = match input_c.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             x => panic!("input_c should be simple type, but found {:?}", x),
         };
@@ -331,22 +350,28 @@ mod test {
 
         assert_eq!( name, "d" );
         
-        let (input_efg, output_i) = match output_efg_etc {
-            Type::Arrow{input, output} => (*input, *output),
+        let (mut input_efg, output_i) = match output_efg_etc {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("input_efg_etc should be arrow type, but found {:?}", x),
         };
 
-        let (input_ef, output_g) = match input_efg {
-            Type::Arrow{input, output} => (*input, *output),
+        assert_eq!( input_efg.len(), 1 );
+
+        let (mut input_ef, output_g) = match input_efg.pop().unwrap() {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("input_efg should be arrow type, but found {:?}", x),
         };
 
-        let (input_e, output_f) = match input_ef {
-            Type::Arrow{input, output} => (*input, *output),
+        assert_eq!( input_ef.len(), 1 );
+
+        let (mut input_e, output_f) = match input_ef.pop().unwrap() {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("input_ef should be arrow type, but found {:?}", x),
         };
 
-        let name = match input_e {
+        assert_eq!( input_e.len(), 1 );
+
+        let name = match input_e.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             x => panic!("input_e should be simple type, but found {:?}", x),
         };
@@ -379,7 +404,7 @@ mod test {
 
     #[test]
     fn should_parse_complex_tuple() -> Result<(), ParseError> {
-        let i = "(a -> b, c::d::e, (), i<j,k,l>, (m, n)) ".char_indices().collect::<Vec<(usize, char)>>();
+        let i = "(fun(a) -> b, c::d::e, (), i<j,k,l>, (m, n)) ".char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_type()?;
 
@@ -392,12 +417,14 @@ mod test {
 
         let one = types.remove(0);
 
-        let (one_input, one_output) = match one {
-            Type::Arrow{input, output} => (*input, *output),   
+        let (mut one_input, one_output) = match one {
+            Type::Fun {input, output} => (input, *output),   
             x => panic!("one should be arrow type, but found {:?}", x),
         };
 
-        let name = match one_input {
+        assert_eq!( one_input.len(), 1 );
+
+        let name = match one_input.pop().unwrap() {
             Type::Simple(PSym { value, .. }) => value,
             x => panic!("one_input should be simple type, but found {:?}", x),
         };
@@ -419,8 +446,8 @@ mod test {
         };
         
         assert_eq!( names.len(), 2 );
-        assert_eq!( sym_proj(names[0]), "c" );
-        assert_eq!( sym_proj(names[1]), "d" );
+        assert_eq!( sym_proj(&names[0]), "c" );
+        assert_eq!( sym_proj(&names[1]), "d" );
 
         let name = match t {
             Type::Simple(PSym { value, .. }) => value,
@@ -512,7 +539,7 @@ mod test {
         };
 
         assert_eq!( names.len(), 1 );
-        assert_eq!( sym_proj(names[0]), "a" );
+        assert_eq!( sym_proj(&names[0]), "a" );
 
         let (name, mut ts) = match t {
             Type::Index(PSym { value, .. }, ts) => (value, ts),
@@ -537,16 +564,18 @@ mod test {
 
     #[test]
     fn should_parse_indexed_arrow_param() -> Result<(), ParseError> {
-        let i = "a<b> -> c<d>".char_indices().collect::<Vec<(usize, char)>>();
+        let i = "fun(a<b>) -> c<d>".char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_type()?;
 
-        let (input, output) = match u {
-            Type::Arrow {input, output} => (*input, *output),
+        let (mut input, output) = match u {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("should be arrow type, but found {:?}", x),
         };
 
-        let (name, mut ts) = match input {
+        assert_eq!( input.len(), 1 );
+
+        let (name, mut ts) = match input.pop().unwrap() {
             Type::Index(PSym { value, .. }, ts) => (value, ts),
             x => panic!("input should be index type, but found {:?}", x),
         };
@@ -583,22 +612,24 @@ mod test {
 
     #[test]
     fn should_parse_namespace_arrow_param() -> Result<(), ParseError> {
-        let i = "a::b -> c::d ".char_indices().collect::<Vec<(usize, char)>>();
+        let i = "fun(a::b) -> c::d ".char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_type()?;
 
-        let (input_ab, output_cd) = match u {
-            Type::Arrow {input, output} => (*input, *output),
+        let (mut input_ab, output_cd) = match u {
+            Type::Fun {input, output} => (input, *output),
             x => panic!("should be arrow type, but found {:?}", x),
         };
 
-        let (names, t) = match input_ab {
+        assert_eq!( input_ab.len(), 1 );
+
+        let (names, t) = match input_ab.pop().unwrap() {
             Type::Namespace(ns, t) => (ns, *t),
             x => panic!("input_ab should be indexed type, but found {:?}", x),
         };
 
         assert_eq!( names.len(), 1 );
-        assert_eq!( sym_proj(names[0]), "a" );
+        assert_eq!( sym_proj(&names[0]), "a" );
 
         let name = match t {
             Type::Simple(PSym { value, .. }) => value,
@@ -613,7 +644,7 @@ mod test {
         };
 
         assert_eq!( names.len(), 1 );
-        assert_eq!( sym_proj(names[0]), "c" );
+        assert_eq!( sym_proj(&names[0]), "c" );
 
         let name = match t {
             Type::Simple(PSym { value, .. }) => value,
