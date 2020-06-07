@@ -264,12 +264,18 @@ impl<'a> Input<'a> {
     pub fn list<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Vec<T>, ParseError> {
         let mut items = vec![];
 
+        // check to see if this is an empty list
+        match parse(self) {
+            Ok(item) => items.push(item),
+            Err(_) => return Ok(items),
+        }
+
         loop {
-            items.push(parse(self)?);
             match self.expect(",") {
                 Ok(v) => (),
                 Err(_) => break,
             }
+            items.push(parse(self)?);
         }
 
         Ok(items)
@@ -530,10 +536,10 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
 
     #[test]
     fn should_parse_zero_or_more_with_no_items() -> Result<(), ParseError> {
-        let mut input = Input { data: &"".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"x".char_indices().collect::<Vec<(usize, char)>>() };
         let numbers = input.zero_or_more(|i| i.parse_number())?;
         assert_eq!( numbers.len(), 0 );
-        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "x".to_string() ); 
         Ok(())
     }
 
@@ -560,12 +566,43 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
 
     #[test]
     fn should_fail_one_or_more_with_no_item() -> Result<(), ParseError> {
-        let mut input = Input { data: &"".char_indices().collect::<Vec<(usize, char)>>() };
+        let mut input = Input { data: &"x".char_indices().collect::<Vec<(usize, char)>>() };
         let numbers = input.one_or_more(|i| i.parse_number());
         match numbers {
             Ok(_) => panic!( "one or more should fail on no items" ),
             Err(_) => (),
         }
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "x".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_empty_list() -> Result<(), ParseError> {
+        let mut input = Input { data: &"x".char_indices().collect::<Vec<(usize, char)>>() };
+        let items = input.list(|i| i.parse_number())?;
+        assert_eq!( items.len(), 0 );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "x".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_single_item_list() -> Result<(), ParseError> {
+        let mut input = Input { data: &"123".char_indices().collect::<Vec<(usize, char)>>() };
+        let items = input.list(|i| i.parse_number())?;
+        assert_eq!( items.len(), 1 );
+        assert_eq!( items[0].value, "123" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_list() -> Result<(), ParseError> {
+        let mut input = Input { data: &"123, 456, 789".char_indices().collect::<Vec<(usize, char)>>() };
+        let items = input.list(|i| i.parse_number())?;
+        assert_eq!( items.len(), 3 );
+        assert_eq!( items[0].value, "123" );
+        assert_eq!( items[1].value, "456" );
+        assert_eq!( items[2].value, "789" );
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
