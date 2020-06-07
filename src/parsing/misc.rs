@@ -18,12 +18,18 @@ impl<'a> Input<'a> {
 
     fn parse_tuple_type(&mut self) -> Result<Type, ParseError> {
         self.expect("(")?;
-        let types = self.list(|input| input.parse_type())?;
-
-
-
+        let mut types = self.list(|input| input.parse_type())?;
+        self.expect(")")?;
         
-        Err(ParseError::EndOfFile("".to_string()))
+        if types.len() == 0 {
+            Ok(Type::Unit)
+        }
+        else if types.len() == 1 {
+            Ok(types.pop().unwrap())
+        }
+        else {
+            Ok(Type::Tuple(types))
+        }
     }
 
     fn parse_fun_type(&mut self) -> Result<Type, ParseError> {
