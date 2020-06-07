@@ -260,6 +260,20 @@ impl<'a> Input<'a> {
 
         Ok(items)
     }
+
+    pub fn list<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Vec<T>, ParseError> {
+        let mut items = vec![];
+
+        loop {
+            items.push(parse(self)?);
+            match self.expect(",") {
+                Ok(v) => (),
+                Err(_) => break,
+            }
+        }
+
+        Ok(items)
+    }
 }
 
 #[cfg(test)]

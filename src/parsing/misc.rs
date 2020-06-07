@@ -17,6 +17,8 @@ impl<'a> Input<'a> {
     */
 
     fn parse_tuple_type(&mut self) -> Result<Type, ParseError> {
+        self.expect("(")?;
+
         
         Err(ParseError::EndOfFile("".to_string()))
     }
@@ -26,7 +28,7 @@ impl<'a> Input<'a> {
         Err(ParseError::EndOfFile("".to_string()))
     }
 
-    fn parse_namespace_type(&mut self, initial : PSym) -> Result<(Vec<PSym>, PSym), ParseError> {
+    fn parse_namespace_type(&mut self, init : PSym) -> Result<(Vec<PSym>, PSym), ParseError> {
 
         Err(ParseError::EndOfFile("".to_string()))
     }
