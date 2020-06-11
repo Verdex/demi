@@ -33,8 +33,14 @@ impl<'a> Input<'a> {
     }
 
     fn parse_fun_type(&mut self) -> Result<Type, ParseError> {
+        self.expect("fun")?;
+        self.expect("(")?;
+        let input = self.list(|input| input.parse_type())?;
+        self.expect(")")?;
+        self.expect("->")?;
+        let output = self.parse_type()?;
 
-        Err(ParseError::EndOfFile("".to_string()))
+        Ok(Type::Fun { input, output: Box::new(output) })
     }
 
     fn parse_namespace_type(&mut self, init : PSym) -> Result<(Vec<PSym>, PSym), ParseError> {
