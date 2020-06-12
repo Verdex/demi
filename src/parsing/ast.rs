@@ -18,6 +18,18 @@ pub enum Type {
 }
 
 #[derive(Debug)]
+pub struct Use {
+    pub namespace : Vec<PSym>,
+    pub imports : Vec<Import>,
+}
+
+#[derive(Debug)]
+pub enum Import {
+    Everything,
+    Item(PSym),
+}
+
+#[derive(Debug)]
 pub struct Mod {
 
 }
