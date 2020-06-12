@@ -680,5 +680,26 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn should_parse_fun_with_multiple_inputs() -> Result<(), ParseError> {
+        let i = "fun(a::b, a<b>, a, fun(a) -> a) -> d".char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_type()?;
+
+        let (input, output) = match u {
+            Type::Fun {input, output} => (input, *output),
+            x => panic!("should be arrow type, but found {:?}", x),
+        };
+
+        assert_eq!( input.len(), 4 );
+
+        match output {
+            Type::Simple(_) => (),
+            x => panic!("should be simple type, but found {:?}", x),
+        }
+
+        Ok(())
+    }
 }
 
