@@ -5,17 +5,6 @@ use super::input::Input;
 
 impl<'a> Input<'a> {
 
-    /* 
-
-    (a,b,c)
-    a
-    a::b::c
-    fun(a,b,c) -> d
-    a<b>
-    ()
-
-    */
-
     fn parse_tuple_type(&mut self) -> Result<Type, ParseError> {
         self.expect("(")?;
         let mut types = self.list(|input| input.parse_type())?;
