@@ -44,8 +44,17 @@ impl<'a> Input<'a> {
     }
 
     fn parse_namespace_type(&mut self, init : PSym) -> Result<(Vec<PSym>, PSym), ParseError> {
+        let mut names = vec![];
+    
+        names.push( init );
 
-        Err(ParseError::EndOfFile("".to_string()))
+        loop {
+            let sym = self.parse_symbol()?;
+            match self.expect("::") {
+                Ok(_) => names.push( sym ),
+                Err(_) => return Ok((names, sym)),
+            }
+        }
     }
 
     fn parse_index_type(&mut self, init : PSym) -> Result<Type, ParseError> {
