@@ -61,6 +61,8 @@ impl<'a> Input<'a> {
 
         let indices = self.list(|input| input.parse_type())?;
 
+        self.expect(">");
+
         Ok(Type::Index( init, indices ))
     }
     
