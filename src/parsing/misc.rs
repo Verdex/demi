@@ -5,7 +5,7 @@ use super::input::Input;
 
 impl<'a> Input<'a> {
 
-    fn parse_use(&mut self) -> Result<Use, ParseError> {
+    pub fn parse_use(&mut self) -> Result<Use, ParseError> {
         fn parse_star_or_sym(input : &mut Input) -> Result<Import, ParseError> {
             match input.parse_symbol() {
                 Ok(sym) => return Ok(Import::Item(sym)),
