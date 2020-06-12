@@ -59,7 +59,9 @@ impl<'a> Input<'a> {
 
     fn parse_index_type(&mut self, init : PSym) -> Result<Type, ParseError> {
 
-        Err(ParseError::EndOfFile("".to_string()))
+        let indices = self.list(|input| input.parse_type())?;
+
+        Ok(Type::Index( init, indices ))
     }
     
     pub fn parse_type(&mut self) -> Result<Type, ParseError> {
