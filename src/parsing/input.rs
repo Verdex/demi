@@ -280,6 +280,21 @@ impl<'a> Input<'a> {
 
         Ok(items)
     }
+
+    pub fn choice<T>(&mut self, parsers : &[fn(&mut Input) -> Result<T, ParseError>]) -> Result<T, ParseError> {
+
+        assert!( parsers.len() > 0, "choice must have at least one parser" );
+
+        let mut e = None;
+        for parse in parsers.iter() {
+            match parse(self) {
+                Ok(item) => return Ok(item),
+                Err(err) => e = Some(err),
+            }
+        }
+
+        Err(e.expect("Encountered choice with zero successes and zero failures"))
+    }
 }
 
 #[cfg(test)]
@@ -603,6 +618,28 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
         assert_eq!( items[0].value, "123" );
         assert_eq!( items[1].value, "456" );
         assert_eq!( items[2].value, "789" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_first_choice() -> Result<(), ParseError> {
+        let mut input = Input { data: &"123".char_indices().collect::<Vec<(usize, char)>>() };
+        let item = input.choice(&[ |i : &mut Input| -> Result<PSym, ParseError> { i.parse_number() }
+                                , |i : &mut Input| -> Result<PSym, ParseError> { i.parse_symbol() }
+                                ])?;
+        assert_eq!( item.value, "123" );
+        assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_second_choice() -> Result<(), ParseError> {
+        let mut input = Input { data: &"blah".char_indices().collect::<Vec<(usize, char)>>() };
+        let item = input.choice(&[ |i : &mut Input| -> Result<PSym, ParseError> { i.parse_number() }
+                                , |i : &mut Input| -> Result<PSym, ParseError> { i.parse_symbol() }
+                                ])?;
+        assert_eq!( item.value, "blah" );
         assert_eq!( input.data.into_iter().map(|(_,x)| x).collect::<String>(), "".to_string() ); 
         Ok(())
     }
