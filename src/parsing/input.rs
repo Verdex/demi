@@ -69,7 +69,7 @@ impl<'a> Input<'a> {
 
         let mut d = self.data;
         let mut cs = vec![];
-        let mut start = 0;
+        let start : usize;
         let mut end = 0;
 
         match d {
@@ -104,7 +104,7 @@ impl<'a> Input<'a> {
         
         let mut d = self.data;
         let mut cs = vec![];
-        let mut start = 0;
+        let start : usize;
         let mut end = 0;
 
         match d {
@@ -145,8 +145,8 @@ impl<'a> Input<'a> {
 
         let mut d = self.data;
         let mut cs = vec![];
-        let mut start = 0;
-        let mut end = 0;
+        let start : usize;
+        let end : usize;
 
         match d {
             [] => return Err(ParseError::EndOfFile("parse_string".to_string())),
@@ -161,53 +161,45 @@ impl<'a> Input<'a> {
         loop {
             match d {
                 [] => return Err(ParseError::EndOfFile("parse_string".to_string())),
-                [(i, '\\'), rest @ ..] if escape => {
+                [(_, '\\'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\\');
-                    end = *i;
                 },
-                [(i, 'n'), rest @ ..] if escape => {
+                [(_, 'n'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\n');
-                    end = *i;
                 },
-                [(i, 'r'), rest @ ..] if escape => {
+                [(_, 'r'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\r');
-                    end = *i;
                 },
-                [(i, '0'), rest @ ..] if escape => {
+                [(_, '0'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\0');
-                    end = *i;
                 },
-                [(i, 't'), rest @ ..] if escape => {
+                [(_, 't'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('\t');
-                    end = *i;
                 },
-                [(i, '"'), rest @ ..] if escape => {
+                [(_, '"'), rest @ ..] if escape => {
                     escape = false;
                     d = rest;
                     cs.push('"');
-                    end = *i;
                 },
                 [(i, x), ..] if escape => return Err(ParseError::ErrorAt(*i, format!("Encountered unknown escape character {}", x))),
-                [(i, '\\'), rest @ ..] => {
+                [(_, '\\'), rest @ ..] => {
                     escape = true;
                     d = rest;
-                    end = *i;
                 },
                 [(_, '"'), ..] => break,
-                [(i, x), rest @ ..] => {
+                [(_, x), rest @ ..] => {
                     d = rest;
                     cs.push(*x);
-                    end = *i;
                 },
             }
         }
@@ -272,7 +264,7 @@ impl<'a> Input<'a> {
 
         loop {
             match self.expect(",") {
-                Ok(v) => (),
+                Ok(_) => (),
                 Err(_) => break,
             }
             items.push(parse(self)?);
