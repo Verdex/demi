@@ -36,5 +36,6 @@ pub struct Mod {
 
 #[derive(Debug)]
 pub enum Expr {
-
+    Number(PSym),
+    PString(PSym),  
 }
