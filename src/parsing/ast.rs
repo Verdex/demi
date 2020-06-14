@@ -38,4 +38,6 @@ pub struct Mod {
 pub enum Expr {
     Number(PSym),
     PString(PSym),  
+    Variable(PSym),
 }
+
