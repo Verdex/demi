@@ -7,6 +7,7 @@ impl<'a> Input<'a> {
 
     pub fn parse_top_level(&mut self) -> Result<TopLevel, ParseError> {
 
+        Err(ParseError::EndOfFile("".to_string()))
     }
 
 }
