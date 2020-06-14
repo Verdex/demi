@@ -30,14 +30,45 @@ pub enum Import {
 }
 
 #[derive(Debug)]
+pub enum Expr {
+    Number(PSym),
+    PString(PSym),  
+    Variable(PSym),
+}
+
+#[derive(Debug)]
+pub enum Statement {
+    
+}
+
+#[derive(Debug)]
+pub enum StatementsOrExpr {
+    Expr(Expr),
+    Statement(Vec<Statement>),
+}
+
+#[derive(Debug)]
 pub struct Mod {
 
 }
 
 #[derive(Debug)]
-pub enum Expr {
-    Number(PSym),
-    PString(PSym),  
-    Variable(PSym),
+pub enum TopLevel {
+    FunDef { def : FunDef, public : bool }
+}
+
+#[derive(Debug)]
+pub struct FunDef {
+    pub name : PSym, 
+    pub type_params : Vec<Type>, 
+    pub params : Vec<FunParam>,
+    pub return_type : Type,
+    pub definition : StatementsOrExpr
+}
+
+#[derive(Debug)]
+pub struct FunParam {
+    pub name : PSym,
+    pub param_type : Type,
 }
 
