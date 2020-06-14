@@ -13,29 +13,34 @@ impl<'a> Input<'a> {
     }
 
     fn parse_fun_def(&mut self) -> Result<FunDef, ParseError> {
+        fn parse_param(input : &mut Input) -> Result<FunParam, ParseError> {
+            let name = input.parse_symbol()?; 
+            input.expect(":")?;
+            let param_type = input.parse_type()?;
+            Ok(FunParam { name, param_type })
+        }
         
         self.expect("fun")?;
         
         let name = self.parse_symbol()?;
 
-        self.expect("<")?; // TODO maybe
+        match self.maybe(|input| input.expect("<"))? {
+            Some(_) => {
+                let type_params = self.list(|input| input.parse_symbol())?;
+                self.expect(">")?;
+                self.expect("(")?;
+                let params = self.list(parse_param)?;
+                self.expect(")")?;
+                // TODO return type maybe?
+                // parse { 
 
-        let type_params = self.list(|input| input.parse_symbol())?;
+                // parse statements or exprs
 
-        self.expect(">")?;
+            },
+            None => {
 
-
-        self.expect("(")?;
-
-        // parse parameters
-
-        // parse return type maybe
-
-        // parse { 
-
-        // parse statements or exprs
-
-
+            },
+        }
 
         Err(ParseError::EndOfFile("".to_string()))
     }
