@@ -219,9 +219,13 @@ impl<'a> Input<'a> {
     }
 
     pub fn maybe<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Option<T>, ParseError> {
+        let rp = self.create_restore(); 
         match parse(self) {
             Ok(v) => Ok(Some(v)),
-            Err(_) => Ok(None),
+            Err(_) => { 
+                self.restore(rp);
+                Ok(None) 
+            },
         }
     }
 
@@ -229,9 +233,13 @@ impl<'a> Input<'a> {
         let mut items = vec![];
 
         loop {
+            let rp = self.create_restore(); 
             match parse(self) {
                 Ok(v) => items.push(v),
-                Err(_) => break,
+                Err(_) => {
+                    self.restore(rp);
+                    break
+                },
             }
         }
 
@@ -244,9 +252,13 @@ impl<'a> Input<'a> {
         items.push( parse(self)? );
 
         loop {
+            let rp = self.create_restore(); 
             match parse(self) {
                 Ok(v) => items.push(v),
-                Err(_) => break,
+                Err(_) => {
+                    self.restore(rp); 
+                    break
+                },
             }
         }
 
@@ -257,9 +269,13 @@ impl<'a> Input<'a> {
         let mut items = vec![];
 
         // check to see if this is an empty list
+        let rp = self.create_restore();
         match parse(self) {
             Ok(item) => items.push(item),
-            Err(_) => return Ok(items),
+            Err(_) => {
+                self.restore(rp); 
+                return Ok(vec![]);
+            },
         }
 
         loop {
@@ -279,9 +295,13 @@ impl<'a> Input<'a> {
 
         let mut e = None;
         for parse in parsers.iter() {
+            let rp = self.create_restore();
             match parse(self) {
                 Ok(item) => return Ok(item),
-                Err(err) => e = Some(err),
+                Err(err) => {
+                    e = Some(err);
+                    self.restore(rp);
+                },
             }
         }
 
