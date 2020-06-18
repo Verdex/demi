@@ -42,12 +42,6 @@ pub enum Statement {
 }
 
 #[derive(Debug)]
-pub enum StatementsOrExpr {
-    Expr(Expr),
-    Statement(Vec<Statement>),
-}
-
-#[derive(Debug)]
 pub struct Mod {
 
 }
@@ -63,7 +57,7 @@ pub struct FunDef {
     pub type_params : Vec<Type>, 
     pub params : Vec<FunParam>,
     pub return_type : Type,
-    pub definition : StatementsOrExpr
+    pub definition : (Vec<Statement>, Option<Expr>),
 }
 
 #[derive(Debug)]

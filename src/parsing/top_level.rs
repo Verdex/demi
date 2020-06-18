@@ -2,6 +2,7 @@
 use super::ast::*;
 use super::parse_error::ParseError;
 use super::input::Input;
+use super::expr;
 
 impl<'a> Input<'a> {
 
@@ -19,28 +20,34 @@ impl<'a> Input<'a> {
             let param_type = input.parse_type()?;
             Ok(FunParam { name, param_type })
         }
-        
+
         self.expect("fun")?;
         
         let name = self.parse_symbol()?;
 
-        match self.maybe(|input| input.expect("<"))? {
+        /*match self.maybe(|input| input.expect("<"))? {
             Some(_) => {
                 let type_params = self.list(|input| input.parse_symbol())?;
                 self.expect(">")?;
                 self.expect("(")?;
                 let params = self.list(parse_param)?;
                 self.expect(")")?;
-                // TODO return type maybe?
-                // parse { 
+                match self.expect("->") {
+                    Ok(_) => {
+                        let return_type = self.parse_type()?;
+                        self.expect("{")?;
+                        // ... self.zero_or_more(|input| input. ...)?;
+                        self.expect("}")?;
+                    },
 
-                // parse statements or exprs
+                    Err(_) => { }, 
+                }
 
             },
             None => {
 
             },
-        }
+        }*/
 
         Err(ParseError::EndOfFile("".to_string()))
     }
