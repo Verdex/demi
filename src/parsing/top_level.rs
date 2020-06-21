@@ -7,10 +7,8 @@ use super::statement;
 impl<'a> Input<'a> {
 
     pub fn parse_top_level(&mut self) -> Result<TopLevel, ParseError> {
-         
-        // TODO maybe public?
-
-        Err(ParseError::EndOfFile("".to_string()))
+        // TODO pub?
+        Ok( TopLevel::FunDef { def: self.parse_fun_def()?, public: true } )
     }
 
     fn parse_fun_def(&mut self) -> Result<FunDef, ParseError> {
