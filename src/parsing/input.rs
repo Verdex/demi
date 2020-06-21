@@ -218,13 +218,13 @@ impl<'a> Input<'a> {
         Ok( PSym { start, end, value: cs.into_iter().collect::<String>() } )
     }
 
-    pub fn maybe<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Result<Option<T>, ParseError> {
+    pub fn maybe<T>(&mut self, parse : fn(&mut Input) -> Result<T, ParseError>) -> Option<T> {
         let rp = self.create_restore(); 
         match parse(self) {
-            Ok(v) => Ok(Some(v)),
+            Ok(v) => Some(v),
             Err(_) => { 
                 self.restore(rp);
-                Ok(None) 
+                None 
             },
         }
     }
@@ -530,7 +530,7 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
     #[test]
     fn should_parse_maybe_parser() -> Result<(), ParseError> {
         let mut input = Input { data: &"-1234".char_indices().collect::<Vec<(usize, char)>>() };
-        let PSym { start, end, value: number } = input.maybe(|i| i.parse_number())?.unwrap();
+        let PSym { start, end, value: number } = input.maybe(|i| i.parse_number()).unwrap();
         assert_eq!( start, 0 );
         assert_eq!( end, 4 );
         assert_eq!( number, "-1234" );
@@ -541,7 +541,7 @@ whitespace ""#.char_indices().collect::<Vec<(usize, char)>>() };
     #[test]
     fn should_parse_maybe_parser_with_nothing() -> Result<(), ParseError> {
         let mut input = Input { data: &"x".char_indices().collect::<Vec<(usize, char)>>() };
-        let number = input.maybe(|i| i.parse_number())?;
+        let number = input.maybe(|i| i.parse_number());
         match number {
             None => (),
             _ => panic!( "nothing should be parsed" ), 

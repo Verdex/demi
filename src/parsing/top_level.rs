@@ -25,7 +25,7 @@ impl<'a> Input<'a> {
         
         let name = self.parse_symbol()?;
 
-        match self.maybe(|input| input.expect("<"))? {
+        match self.maybe(|input| input.expect("<")) {
             Some(_) => {
                 let type_params = self.list(|input| input.parse_symbol())?;
                 self.expect(">")?;
