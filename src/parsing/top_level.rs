@@ -2,7 +2,7 @@
 use super::ast::*;
 use super::parse_error::ParseError;
 use super::input::Input;
-use super::expr;
+use super::statement;
 
 impl<'a> Input<'a> {
 
@@ -25,7 +25,7 @@ impl<'a> Input<'a> {
         
         let name = self.parse_symbol()?;
 
-        /*match self.maybe(|input| input.expect("<"))? {
+        match self.maybe(|input| input.expect("<"))? {
             Some(_) => {
                 let type_params = self.list(|input| input.parse_symbol())?;
                 self.expect(">")?;
@@ -36,20 +36,41 @@ impl<'a> Input<'a> {
                     Ok(_) => {
                         let return_type = self.parse_type()?;
                         self.expect("{")?;
-                        // ... self.zero_or_more(|input| input. ...)?;
+                        let definition = self.zero_or_more(|input| input.parse_statement())?;
                         self.expect("}")?;
+                        Ok( FunDef { name, type_params, params, return_type, definition } )
                     },
-
-                    Err(_) => { }, 
+                    Err(_) => { 
+                        self.expect("{")?;
+                        let definition = self.zero_or_more(|input| input.parse_statement())?;
+                        self.expect("}")?;
+                        Ok( FunDef { name, type_params, params, return_type: Type::Unit, definition } )
+                    }, 
                 }
 
             },
             None => {
+                self.expect("(")?;
+                let params = self.list(parse_param)?;
+                self.expect(")")?;
+                match self.expect("->") {
+                    Ok(_) => {
+                        let return_type = self.parse_type()?;
+                        self.expect("{")?;
+                        let definition = self.zero_or_more(|input| input.parse_statement())?;
+                        self.expect("}")?;
+                        Ok( FunDef { name, type_params: vec![], params, return_type, definition } )
+                    },
+                    Err(_) => { 
+                        self.expect("{")?;
+                        let definition = self.zero_or_more(|input| input.parse_statement())?;
+                        self.expect("}")?;
+                        Ok( FunDef { name, type_params: vec![], params, return_type: Type::Unit, definition } )
+                    }, 
+                }
 
             },
-        }*/
-
-        Err(ParseError::EndOfFile("".to_string()))
+        }
     }
 
 }

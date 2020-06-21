@@ -54,10 +54,10 @@ pub enum TopLevel {
 #[derive(Debug)]
 pub struct FunDef {
     pub name : PSym, 
-    pub type_params : Vec<Type>, 
+    pub type_params : Vec<PSym>, 
     pub params : Vec<FunParam>,
     pub return_type : Type,
-    pub definition : (Vec<Statement>, Option<Expr>),
+    pub definition : Vec<Statement>,
 }
 
 #[derive(Debug)]
