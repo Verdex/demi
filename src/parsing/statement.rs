@@ -10,6 +10,19 @@ impl<'a> Input<'a> {
         Err(ParseError::EndOfFile("".to_string()))
     }
 
+    fn parse_expr(&mut self) -> Result<Expr, ParseError> {
+        self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
+                      , |input| Ok(Expr::PString(input.parse_string()?))
+
+                      // TODO This needs to be last?
+                      , |input| Ok(Expr::Variable(input.parse_symbol()?))
+                      ] )
+    }
+
+    fn parse_lambda(&mut self) -> Result<Expr, ParseError> {
+
+        Err(ParseError::EndOfFile("".to_string()))
+    }
 }
 
 #[cfg(test)]
