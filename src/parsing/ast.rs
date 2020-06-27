@@ -43,7 +43,7 @@ pub enum Statement {
 
 #[derive(Debug)]
 pub struct Mod {
-
+    pub fun_defs : Vec<FunDef>,
 }
 
 #[derive(Debug)]

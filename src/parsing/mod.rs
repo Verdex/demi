@@ -5,3 +5,4 @@ mod input;
 mod misc;
 mod top_level;
 mod statement;
+pub mod parse;
