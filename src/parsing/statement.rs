@@ -6,8 +6,14 @@ use super::misc;
 
 impl<'a> Input<'a> {
 
+    fn parse_return(&mut self) -> Result<Statement, ParseError> {
+        self.expect("return")?;
+        let expr = self.maybe( |input| input.parse_expr() );
+        Ok(Statement::Return(expr))
+    }
+
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
-        Err(ParseError::EndOfFile("".to_string()))
+        self.choice( &[ |input| input.parse_return() ] )
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {

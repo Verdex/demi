@@ -38,7 +38,7 @@ pub enum Expr {
 
 #[derive(Debug)]
 pub enum Statement {
-    
+    Return(Option<Expr>),    
 }
 
 #[derive(Debug)]
