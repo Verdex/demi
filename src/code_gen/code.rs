@@ -1,4 +1,5 @@
 
 pub enum Code {
-    S(String)
+    S(String),
+    Nop,
 }
