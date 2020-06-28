@@ -18,6 +18,7 @@ pub fn parse_module(s : &str) -> Result<Mod, ParseError> {
         }
     }
     Ok( Mod { fun_defs } )
+    // TODO make sure we make sure we've consumed the entire input
 }
 
 
