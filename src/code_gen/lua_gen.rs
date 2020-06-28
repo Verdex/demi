@@ -1,7 +1,7 @@
 
 use crate::parsing::ast::*;
 
-pub fn gen_lua( module : Mod ) -> String { 
+pub fn gen_mod( module : Mod ) -> String { 
     module.fun_defs.into_iter().map(|def| gen_fun_def(def)).collect::<Vec<String>>().join("\n")
 }
 

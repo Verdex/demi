@@ -2,7 +2,6 @@
 use super::ast::*;
 use super::parse_error::ParseError;
 use super::input::Input;
-use super::statement;
 
 impl<'a> Input<'a> {
 
