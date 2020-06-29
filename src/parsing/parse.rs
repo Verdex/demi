@@ -7,7 +7,9 @@ use super::input::Input;
 pub fn parse_module(s : &str) -> Result<Mod, ParseError> {
     let ci = s.char_indices().collect::<Vec<(usize, char)>>();
     let mut input = Input::new(&ci);
-    let top_level_items = input.zero_or_more(|i| i.parse_top_level() )?;
+    // TODO if everything fails then the zero or more is going to return no errors, which means we won't be able to show the 
+    // user any sort of errors
+    let top_level_items = input.zero_or_more(|i| i.parse_top_level() )?; 
     let mut fun_defs = vec![];
     for item in top_level_items.into_iter() {
         match item {
