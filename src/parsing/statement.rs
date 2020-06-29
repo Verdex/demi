@@ -8,6 +8,7 @@ impl<'a> Input<'a> {
     fn parse_return(&mut self) -> Result<Statement, ParseError> {
         self.expect("return")?;
         let expr = self.maybe( |input| input.parse_expr() );
+        self.expect(";")?;
         Ok(Statement::Return(expr))
     }
 

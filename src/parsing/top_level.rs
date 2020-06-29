@@ -7,7 +7,9 @@ impl<'a> Input<'a> {
 
     pub fn parse_top_level(&mut self) -> Result<TopLevel, ParseError> {
         // TODO pub?
-        Ok( TopLevel::FunDef { def: self.parse_fun_def()?, public: true } )
+        let x = self.parse_fun_def()?;
+        //Ok( TopLevel::FunDef { def: self.parse_fun_def()?, public: true } )
+        Ok( TopLevel::FunDef { def: x, public: true } )
     }
 
     fn parse_fun_def(&mut self) -> Result<FunDef, ParseError> {

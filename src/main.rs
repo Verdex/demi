@@ -13,7 +13,6 @@ fun blah( x : number ) {
 }
 "#;
     let m = parse::parse_module(&s)?;
-    println!("{:?}", m);
     let o = lua_gen::gen_mod(m);
     println!("::{}", o);
     Ok(())
