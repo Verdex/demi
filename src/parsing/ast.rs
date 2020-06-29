@@ -44,6 +44,7 @@ pub enum Statement {
 #[derive(Debug)]
 pub struct Mod {
     pub fun_defs : Vec<FunDef>,
+    pub fun_exports : Vec<String>,
 }
 
 #[derive(Debug)]

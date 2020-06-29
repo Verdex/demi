@@ -11,6 +11,10 @@ fn main() -> Result<(), ParseError>{
 fun blah( x : number ) {
     return 0;
 }
+
+fun other() {
+    return 1;
+}
 "#;
     let m = parse::parse_module(&s)?;
     let o = lua_gen::gen_mod(m);

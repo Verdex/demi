@@ -2,7 +2,18 @@
 use crate::parsing::ast::*;
 
 pub fn gen_mod( module : Mod ) -> String { 
-    module.fun_defs.into_iter().map(|def| gen_fun_def(def)).collect::<Vec<String>>().join("\n")
+    fn e( s : String ) -> String {
+        format!("{} = {}", s.clone(), s)
+    }
+
+    [ module.fun_defs.into_iter().map(|def| gen_fun_def(def)).collect::<Vec<String>>().join("\n")
+    , format!("return {{ {}\n       }}"
+             , module.fun_exports
+                .into_iter()
+                .map(|export| e(export))
+                .collect::<Vec<String>>()
+                .join("\n       ; "))
+    ].join("\n")
 }
 
 fn gen_fun_def( fun_def : FunDef ) -> String {

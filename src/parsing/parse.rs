@@ -11,15 +11,18 @@ pub fn parse_module(s : &str) -> Result<Mod, ParseError> {
     // user any sort of errors
     let top_level_items = input.zero_or_more(|i| i.parse_top_level() )?; 
     let mut fun_defs = vec![];
+    let mut fun_exports = vec![];
     for item in top_level_items.into_iter() {
         match item {
             TopLevel::FunDef { def, public } => {
-                // TODO we're going to be using public to determing if it's exported
+                if public {
+                    fun_exports.push(def.name.value.clone());
+                }
                 fun_defs.push(def);
             }
         }
     }
-    Ok( Mod { fun_defs } )
+    Ok( Mod { fun_defs, fun_exports } )
     // TODO make sure we make sure we've consumed the entire input
 }
 
