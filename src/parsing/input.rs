@@ -17,7 +17,7 @@ impl<'a> Input<'a> {
         Input { data: input }
     }
 
-    fn clear(&mut self) -> Result<(), ParseError> { 
+    pub fn clear(&mut self) -> Result<(), ParseError> { 
         let mut d = self.data;
         let mut comment = 0;
         loop {

@@ -19,6 +19,7 @@ impl<'a> Input<'a> {
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
         self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
                       , |input| Ok(Expr::PString(input.parse_string()?))
+                      , |input| input.parse_bool()
 
                       // TODO This needs to be last?
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
@@ -29,6 +30,22 @@ impl<'a> Input<'a> {
 
         Err(ParseError::EndOfFile("".to_string()))
     }
+
+    fn parse_bool(&mut self) -> Result<Expr, ParseError> {
+        let rp = self.create_restore();
+        let value = self.parse_symbol()?;
+        if value.value == "true" {
+            Ok(Expr::Bool(true))
+        }
+        else if value.value == "false" {
+            Ok(Expr::Bool(false))
+        }
+        else {
+            self.restore(rp);
+            Err(ParseError::ErrorAt(value.start, "Expected boolean".to_string()))
+        }
+    }
+
 }
 
 #[cfg(test)]

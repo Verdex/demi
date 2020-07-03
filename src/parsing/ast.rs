@@ -33,6 +33,7 @@ pub enum Import {
 pub enum Expr {
     Number(PSym),
     PString(PSym),  
+    Bool(bool),
     Variable(PSym),
 }
 
