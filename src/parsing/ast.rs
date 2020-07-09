@@ -35,6 +35,14 @@ pub enum Expr {
     PString(PSym),  
     Bool(bool),
     Variable(PSym),
+    StatementLambda { params : Vec<FunParam>
+                    , return_type : Type
+                    , definition : Vec<Statement>
+                    },
+    ExprLambda { params : Vec<FunParam>
+               , return_type : Type
+               , definition : Box<Expr>
+               }
 }
 
 #[derive(Debug)]

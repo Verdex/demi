@@ -20,6 +20,7 @@ impl<'a> Input<'a> {
         self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
                       , |input| Ok(Expr::PString(input.parse_string()?))
                       , |input| input.parse_bool()
+                      , |input| input.parse_lambda()
 
                       // TODO This needs to be last?
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
@@ -27,8 +28,50 @@ impl<'a> Input<'a> {
     }
 
     fn parse_lambda(&mut self) -> Result<Expr, ParseError> {
-
-        Err(ParseError::EndOfFile("".to_string()))
+        fn parse_param(input : &mut Input) -> Result<FunParam, ParseError> {
+            let name = input.parse_symbol()?; 
+            match input.expect(":") {
+                Ok(_) => { 
+                    let param_type = input.parse_type()?;
+                    Ok(FunParam { name, param_type })
+                },
+                Err(_) => {
+                    Ok(FunParam { name, param_type: Type::Infer })
+                },
+            }
+        }
+        self.expect("|")?;
+        let params = self.list(parse_param)?;
+        self.expect("|")?;
+        match self.expect("->") {
+            Ok(_) => {
+                let return_type = self.parse_type()?;
+                match self.expect("{") {
+                    Ok(_) => {
+                        let definition = self.zero_or_more(|input| input.parse_statement())?;
+                        self.expect("}")?;
+                        Ok(Expr::StatementLambda { params, return_type, definition })
+                    },
+                    Err(_) => {
+                        let definition = Box::new(self.parse_expr()?);
+                        Ok(Expr::ExprLambda { params, return_type, definition })
+                    },
+                }
+            },
+            Err(_) => {
+                match self.expect("{") {
+                    Ok(_) => {
+                        let definition = self.zero_or_more(|input| input.parse_statement())?;
+                        self.expect("}")?;
+                        Ok(Expr::StatementLambda { params, return_type: Type::Infer, definition })
+                    },
+                    Err(_) => {
+                        let definition = Box::new(self.parse_expr()?);
+                        Ok(Expr::ExprLambda { params, return_type: Type::Infer, definition })
+                    },
+                }
+            },
+        }
     }
 
     fn parse_bool(&mut self) -> Result<Expr, ParseError> {
