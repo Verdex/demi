@@ -95,4 +95,39 @@ impl<'a> Input<'a> {
 mod test {
     use super::*;
 
+    #[test]
+    fn should_parse_expr_lambda() -> Result<(), ParseError> {
+        let i = r#"|a, b, c| 0"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_lambda()?;
+        assert!( matches!( u, Expr::ExprLambda { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_statement_lambda() -> Result<(), ParseError> {
+        let i = r#"|a, b, c| { return 0; }"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_lambda()?;
+        assert!( matches!( u, Expr::StatementLambda { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_statement_lambda_with_types() -> Result<(), ParseError> {
+        let i = r#"|a : A, b : B, c| -> R { return 0; }"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_lambda()?;
+        assert!( matches!( u, Expr::StatementLambda { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_expr_lambda_with_types() -> Result<(), ParseError> {
+        let i = r#"|a, b : B, c : C| -> R<T> 0"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_lambda()?;
+        assert!( matches!( u, Expr::ExprLambda { .. } ) );
+        Ok(())
+    }
 }
