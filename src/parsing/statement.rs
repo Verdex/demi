@@ -21,6 +21,12 @@ impl<'a> Input<'a> {
                       , |input| Ok(Expr::PString(input.parse_string()?))
                       , |input| input.parse_bool()
                       , |input| input.parse_lambda()
+                      
+                      // TODO call
+                      // TODO dot
+                      // TODO pipe
+                      
+                      // TODO namespace variable
 
                       // TODO This needs to be last?
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
