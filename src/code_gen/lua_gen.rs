@@ -24,7 +24,7 @@ fn gen_fun_def( fun_def : FunDef ) -> String {
         statements.into_iter().map(|s| gen_statement(s, 0)).collect::<Vec<String>>().join("\n")
     }
     format!(r#"
-function {}({})
+local {} = function ({})
 {}
 end"#, fun_def.name.value, p(fun_def.params), d(fun_def.definition))
 }
