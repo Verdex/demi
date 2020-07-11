@@ -13,20 +13,27 @@ impl<'a> Input<'a> {
     }
 
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
+        // TODO let
+        // TODO match
+        // TODO set
         self.choice( &[ |input| input.parse_return() ] )
     }
 
+    // TODO try and call can be both statements and expressions
+
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
+
+                      // TODO call
+                      // TODO dot call (a-blah() => blah(a))
+                      // TODO dot (table index)
+                      
         self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
                       , |input| Ok(Expr::PString(input.parse_string()?))
                       , |input| input.parse_bool()
                       , |input| input.parse_lambda()
                       
-                      // TODO call
-                      // TODO dot
-                      // TODO pipe
                       
-                      // TODO namespace variable
+                      // TODO namespace symbol 
 
                       // TODO This needs to be last?
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
