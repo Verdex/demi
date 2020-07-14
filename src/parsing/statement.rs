@@ -5,20 +5,22 @@ use super::input::Input;
 
 impl<'a> Input<'a> {
 
+
+    pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
+        // TODO let
+        // TODO match
+        // TODO set
+        // TODO foreach
+        // TODO while
+        self.choice( &[ |input| input.parse_return() ] )
+    }
+
     fn parse_return(&mut self) -> Result<Statement, ParseError> {
         self.expect("return")?;
         let expr = self.maybe( |input| input.parse_expr() );
         self.expect(";")?;
         Ok(Statement::Return(expr))
     }
-
-    pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
-        // TODO let
-        // TODO match
-        // TODO set
-        self.choice( &[ |input| input.parse_return() ] )
-    }
-
     // TODO try and call can be both statements and expressions
 
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
