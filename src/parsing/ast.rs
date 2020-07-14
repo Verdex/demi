@@ -42,7 +42,8 @@ pub enum Expr {
     ExprLambda { params : Vec<FunParam>
                , return_type : Type
                , definition : Box<Expr>
-               }
+               },
+    Call { func : Box<Expr>, params : Vec<Expr> },
 }
 
 #[derive(Debug)]

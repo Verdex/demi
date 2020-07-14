@@ -5,7 +5,6 @@ use super::input::Input;
 
 impl<'a> Input<'a> {
 
-
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
         // TODO let
         // TODO match
@@ -15,13 +14,22 @@ impl<'a> Input<'a> {
         self.choice( &[ |input| input.parse_return() ] )
     }
 
+    fn parse_call_statement(&mut self) -> Result<Statement, ParseError> {
+    // a.blah()-ikky() => ikky(a["blah"]())
+    // a-ikky().blah() => ikky(a)["blah"]()
+        Err(ParseError::ErrorAt(0, "".to_string()))
+    }
+
+    fn parse_hyphen_call_statement(&mut self) -> Result<Statement, ParseError> {
+        Err(ParseError::ErrorAt(0, "".to_string()))
+    }
+
     fn parse_return(&mut self) -> Result<Statement, ParseError> {
         self.expect("return")?;
         let expr = self.maybe( |input| input.parse_expr() );
         self.expect(";")?;
         Ok(Statement::Return(expr))
     }
-    // TODO try and call can be both statements and expressions
 
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
 
@@ -29,7 +37,7 @@ impl<'a> Input<'a> {
                       // TODO dot call (a-blah() => blah(a))
                       // TODO dot (table index)
                       
-        self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
+        let expr = self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
                       , |input| Ok(Expr::PString(input.parse_string()?))
                       , |input| input.parse_bool()
                       , |input| input.parse_lambda()
@@ -39,7 +47,49 @@ impl<'a> Input<'a> {
 
                       // TODO This needs to be last?
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
-                      ] )
+                      ] )?;
+
+        self.parse_post_expr(expr) // TODO one or more
+    }
+
+    fn parse_call_expr(&mut self) -> Result<Expr, ParseError> {
+        let rp = self.create_restore();
+        let func = Box::new(self.parse_expr()?);
+
+        match self.expect("(") {
+            _ => {},
+            Err(e) => { self.restore(rp); return Err(e); },
+        }
+
+        let params = self.list(|input| input.parse_expr())?;
+
+        self.expect(")")?;
+
+        Ok(Expr::Call{ func, params })
+    }
+
+    // hypen call, call, dot
+    fn parse_post_expr(&mut self, e : Expr) -> Result<Expr, ParseError> {
+        match self.expect("-") {
+            Ok(_) => panic!(""),
+            Err(_) => {
+                match self.expect("(") {
+                    Ok(_) => {
+                        let params = self.list(|input| input.parse_expr())?;
+
+                        self.expect(")")?; 
+                    
+                        Ok(Expr::Call { func: Box::new(e), params })
+                    },
+                    Err(_) => {
+                        match self.expect(".") {
+                            Ok(_) => panic!(""),
+                            Err(_) => return Ok(e),
+                        }
+                    },
+                }
+            },
+        }
     }
 
     fn parse_lambda(&mut self) -> Result<Expr, ParseError> {
@@ -143,6 +193,45 @@ mod test {
         let mut input = Input::new(&i);
         let u = input.parse_lambda()?;
         assert!( matches!( u, Expr::ExprLambda { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_call() -> Result<(), ParseError> {
+        let i = r#"x()"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_expr()?;
+        assert!( matches!( u, Expr::Call { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_call_call() -> Result<(), ParseError> {
+        let i = r#"x()()"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_expr()?;
+        let call = match u {
+           Expr::Call { func, .. } => *func, 
+           e => panic!("expected call but found {:?}", e),
+        };
+
+        assert!( matches!( call, Expr::Call { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_call_call_with_param() -> Result<(), ParseError> {
+        let i = r#"x(a)(b)"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_expr()?;
+        let call = match u {
+           Expr::Call { func, .. } => *func, 
+           e => panic!("expected call but found {:?}", e),
+        };
+
+        // TODO check a and b
+
+        assert!( matches!( call, Expr::Call { .. } ) );
         Ok(())
     }
 }
