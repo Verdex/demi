@@ -31,11 +31,19 @@ impl<'a> Input<'a> {
                       
                       // TODO namespace symbol 
 
-                      // TODO This needs to be last?
+                      // TODO This needs to be last? (or at least before anything that might be a symbol)
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
+                      , |input| input.parse_paren_expr()
                       ] )?;
 
         self.parse_post_expr(expr)
+    }
+
+    fn parse_paren_expr(&mut self) -> Result<Expr, ParseError> {
+        self.expect("(")?;
+        let expr = self.parse_expr()?;
+        self.expect(")")?;
+        Ok(expr)
     }
 
     // dash call, call, dot, try
@@ -233,6 +241,14 @@ mod test {
 
         assert!( matches!(call, Expr::Variable(_)) );
 
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_complex_post_expr() -> Result<(), ParseError> {
+        let i = r#"(|z| z.b(5))(a)(b)?-blarg(a, b.c)()"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let _ = input.parse_expr()?;
         Ok(())
     }
 }
