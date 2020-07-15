@@ -14,16 +14,6 @@ impl<'a> Input<'a> {
         self.choice( &[ |input| input.parse_return() ] )
     }
 
-    fn parse_call_statement(&mut self) -> Result<Statement, ParseError> {
-    // a.blah()-ikky() => ikky(a["blah"]())
-    // a-ikky().blah() => ikky(a)["blah"]()
-        Err(ParseError::ErrorAt(0, "".to_string()))
-    }
-
-    fn parse_hyphen_call_statement(&mut self) -> Result<Statement, ParseError> {
-        Err(ParseError::ErrorAt(0, "".to_string()))
-    }
-
     fn parse_return(&mut self) -> Result<Statement, ParseError> {
         self.expect("return")?;
         let expr = self.maybe( |input| input.parse_expr() );
@@ -32,8 +22,6 @@ impl<'a> Input<'a> {
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
-
-                      // TODO call
                       // TODO dot call (a-blah() => blah(a))
                       // TODO dot (table index)
                       
@@ -49,47 +37,38 @@ impl<'a> Input<'a> {
                       , |input| Ok(Expr::Variable(input.parse_symbol()?))
                       ] )?;
 
-        self.parse_post_expr(expr) // TODO one or more
+        self.parse_post_expr(expr)
     }
 
-    fn parse_call_expr(&mut self) -> Result<Expr, ParseError> {
-        let rp = self.create_restore();
-        let func = Box::new(self.parse_expr()?);
-
-        match self.expect("(") {
-            _ => {},
-            Err(e) => { self.restore(rp); return Err(e); },
-        }
-
-        let params = self.list(|input| input.parse_expr())?;
-
-        self.expect(")")?;
-
-        Ok(Expr::Call{ func, params })
-    }
-
-    // hypen call, call, dot
+    // hypen call, call, dot, try
     fn parse_post_expr(&mut self, e : Expr) -> Result<Expr, ParseError> {
         match self.expect("-") {
             Ok(_) => panic!(""),
-            Err(_) => {
-                match self.expect("(") {
-                    Ok(_) => {
-                        let params = self.list(|input| input.parse_expr())?;
-
-                        self.expect(")")?; 
-                    
-                        Ok(Expr::Call { func: Box::new(e), params })
-                    },
-                    Err(_) => {
-                        match self.expect(".") {
-                            Ok(_) => panic!(""),
-                            Err(_) => return Ok(e),
-                        }
-                    },
-                }
-            },
+            Err(_) => (),
         }
+
+        match self.expect(".") {
+            Ok(_) => panic!(""),
+            Err(_) => (),
+        }
+
+        match self.expect("(") {
+            Ok(_) => {
+                let params = self.list(|input| input.parse_expr())?;
+
+                self.expect(")")?; 
+            
+                return self.parse_post_expr(Expr::Call { func: Box::new(e), params })
+            },
+            Err(_) => (),
+        }
+
+        match self.expect("?") {
+            Ok(_) => panic!(""),
+            Err(_) => (),
+        }
+
+        Ok(e)
     }
 
     fn parse_lambda(&mut self) -> Result<Expr, ParseError> {
@@ -224,14 +203,31 @@ mod test {
         let i = r#"x(a)(b)"#.char_indices().collect::<Vec<(usize, char)>>();
         let mut input = Input::new(&i);
         let u = input.parse_expr()?;
-        let call = match u {
-           Expr::Call { func, .. } => *func, 
+        let (call, mut params) = match u {
+           Expr::Call { func, params } => (*func, params), 
            e => panic!("expected call but found {:?}", e),
         };
 
-        // TODO check a and b
+        let var = match params.pop().unwrap() {
+            Expr::Variable(v) => v.value,
+            e => panic!("expected variable but found {:?}", e),
+        };
 
-        assert!( matches!( call, Expr::Call { .. } ) );
+        assert_eq!( var, "b" );
+
+
+        let (call, mut params) = match call {
+           Expr::Call { func, params } => (*func, params), 
+           e => panic!("expected call but found {:?}", e),
+        };
+
+        let var = match params.pop().unwrap() {
+            Expr::Variable(v) => v.value,
+            e => panic!("expected variable but found {:?}", e),
+        };
+
+        assert_eq!( var, "a" );
+
         Ok(())
     }
 }
