@@ -22,8 +22,6 @@ impl<'a> Input<'a> {
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
-                      // TODO dot call (a-blah() => blah(a))
-                      // TODO dot (table index)
                       
         let expr = self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
                       , |input| Ok(Expr::PString(input.parse_string()?))
@@ -40,15 +38,21 @@ impl<'a> Input<'a> {
         self.parse_post_expr(expr)
     }
 
-    // hypen call, call, dot, try
+    // dash call, call, dot, try
     fn parse_post_expr(&mut self, e : Expr) -> Result<Expr, ParseError> {
         match self.expect("-") {
-            Ok(_) => panic!(""),
+            Ok(_) => {
+                let func = self.parse_symbol()?;
+                return self.parse_post_expr(Expr::Dash { object: Box::new(e), func });
+            },
             Err(_) => (),
         }
 
         match self.expect(".") {
-            Ok(_) => panic!(""),
+            Ok(_) => {
+                let slot = self.parse_symbol()?;
+                return self.parse_post_expr(Expr::Dot { object: Box::new(e), slot });
+            },
             Err(_) => (),
         }
 
@@ -58,13 +62,13 @@ impl<'a> Input<'a> {
 
                 self.expect(")")?; 
             
-                return self.parse_post_expr(Expr::Call { func: Box::new(e), params })
+                return self.parse_post_expr(Expr::Call { func: Box::new(e), params });
             },
             Err(_) => (),
         }
 
         match self.expect("?") {
-            Ok(_) => panic!(""),
+            Ok(_) => return self.parse_post_expr(Expr::Try(Box::new(e))),
             Err(_) => (),
         }
 
@@ -215,7 +219,6 @@ mod test {
 
         assert_eq!( var, "b" );
 
-
         let (call, mut params) = match call {
            Expr::Call { func, params } => (*func, params), 
            e => panic!("expected call but found {:?}", e),
@@ -227,6 +230,8 @@ mod test {
         };
 
         assert_eq!( var, "a" );
+
+        assert!( matches!(call, Expr::Variable(_)) );
 
         Ok(())
     }

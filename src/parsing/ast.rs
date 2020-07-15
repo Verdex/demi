@@ -44,6 +44,9 @@ pub enum Expr {
                , definition : Box<Expr>
                },
     Call { func : Box<Expr>, params : Vec<Expr> },
+    Try(Box<Expr>),
+    Dot { object : Box<Expr>, slot : PSym },
+    Dash { object : Box<Expr>, func : PSym },
 }
 
 #[derive(Debug)]
