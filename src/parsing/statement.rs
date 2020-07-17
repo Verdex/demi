@@ -8,7 +8,10 @@ impl<'a> Input<'a> {
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
         // TODO match
         // TODO foreach
+        // TODO if-ifelse-else
         // TODO while
+        // TODO break, continue
+        // TODO yield
         self.choice( &[ |input| input.parse_let() 
                       , |input| input.parse_set()
                       , |input| input.parse_return() 
