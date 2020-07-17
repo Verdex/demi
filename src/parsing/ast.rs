@@ -60,6 +60,9 @@ pub enum Statement {
     Continue,
     While { test : Expr, statements : Vec<Statement> },
     Foreach { var : PSym, items : Expr, statements : Vec<Statement> },
+    If { test : Expr, statements : Vec<Statement> },
+    ElseIf { test : Expr, statements : Vec<Statement> },
+    Else(Vec<Statement>),
 }
 
 #[derive(Debug)]

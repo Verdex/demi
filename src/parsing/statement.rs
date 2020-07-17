@@ -9,6 +9,9 @@ impl<'a> Input<'a> {
         // TODO match
         // TODO if-ifelse-else
         self.choice( &[ |input| input.parse_let() 
+                      , |input| input.parse_if()
+                      , |input| input.parse_elseif()
+                      , |input| input.parse_else()
                       , |input| input.parse_set()
                       , |input| input.parse_return() 
                       , |input| input.parse_yield()
@@ -18,6 +21,32 @@ impl<'a> Input<'a> {
                       , |input| input.parse_break()
                       , |input| input.parse_continue()
                       ] )
+    }
+
+    fn parse_elseif(&mut self) -> Result<Statement, ParseError> {
+        self.expect("elseif")?;
+        let test = self.parse_expr()?;
+        self.expect("{")?;
+        let statements = self.zero_or_more(|input| input.parse_statement())?;
+        self.expect("}")?;
+        Ok(Statement::ElseIf { test, statements })
+    }
+
+    fn parse_else(&mut self) -> Result<Statement, ParseError> {
+        self.expect("else")?;
+        self.expect("{")?;
+        let statements = self.zero_or_more(|input| input.parse_statement())?;
+        self.expect("}")?;
+        Ok(Statement::Else(statements))
+    }
+
+    fn parse_if(&mut self) -> Result<Statement, ParseError> {
+        self.expect("if")?;
+        let test = self.parse_expr()?;
+        self.expect("{")?;
+        let statements = self.zero_or_more(|input| input.parse_statement())?;
+        self.expect("}")?;
+        Ok(Statement::If { test, statements })
     }
 
     fn parse_foreach(&mut self) -> Result<Statement, ParseError> {
