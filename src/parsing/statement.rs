@@ -9,15 +9,36 @@ impl<'a> Input<'a> {
         // TODO match
         // TODO foreach
         // TODO if-ifelse-else
-        // TODO while
         self.choice( &[ |input| input.parse_let() 
                       , |input| input.parse_set()
                       , |input| input.parse_return() 
                       , |input| input.parse_yield()
                       , |input| input.parse_expr_statement()
+                      , |input| input.parse_foreach()
+                      , |input| input.parse_while()
                       , |input| input.parse_break()
                       , |input| input.parse_continue()
                       ] )
+    }
+
+    fn parse_foreach(&mut self) -> Result<Statement, ParseError> {
+        self.expect("foreach")?;
+        let var = self.parse_symbol()?;
+        self.expect("in")?;
+        let items = self.parse_expr()?;
+        self.expect("{")?;
+        let statements = self.zero_or_more(|input| input.parse_statement())?;
+        self.expect("}")?;
+        Ok(Statement::Foreach { var, items, statements })
+    }
+
+    fn parse_while(&mut self) -> Result<Statement, ParseError> {
+        self.expect("while")?;
+        let test = self.parse_expr()?;
+        self.expect("{")?;
+        let statements = self.zero_or_more(|input| input.parse_statement())?;
+        self.expect("}")?;
+        Ok(Statement::While { test, statements })
     }
 
     fn parse_continue(&mut self) -> Result<Statement, ParseError> {

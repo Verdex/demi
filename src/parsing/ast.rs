@@ -58,6 +58,8 @@ pub enum Statement {
     Set { target : Expr, new_value : Expr },
     Break,
     Continue,
+    While { test : Expr, statements : Vec<Statement> },
+    Foreach { var : PSym, items : Expr, statements : Vec<Statement> },
 }
 
 #[derive(Debug)]
