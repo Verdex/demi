@@ -11,9 +11,26 @@ impl<'a> Input<'a> {
         // TODO set
         // TODO foreach
         // TODO while
-        self.choice( &[ |input| input.parse_return() 
+        self.choice( &[ |input| input.parse_let() 
+                      , |input| input.parse_return() 
                       , |input| input.parse_expr_statement()
                       ] )
+    }
+
+    fn parse_let(&mut self) -> Result<Statement, ParseError> {
+        self.expect("let")?;
+        let name = self.parse_symbol()?;
+        match self.expect(":") {
+            Ok(_) => {
+                let value_type = self.parse_type()?;
+                let expr = self.parse_expr()?;
+                Ok(Statement::Let { name, value_type, expr })
+            },
+            Err(_) => {
+                let expr = self.parse_expr()?;
+                Ok(Statement::Let { name, value_type: Type::Infer, expr })
+            },
+        }
     }
 
     fn parse_expr_statement(&mut self) -> Result<Statement, ParseError> {
