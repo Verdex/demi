@@ -6,15 +6,22 @@ use super::input::Input;
 impl<'a> Input<'a> {
 
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
-        // TODO let
         // TODO match
-        // TODO set
         // TODO foreach
         // TODO while
         self.choice( &[ |input| input.parse_let() 
+                      , |input| input.parse_set()
                       , |input| input.parse_return() 
                       , |input| input.parse_expr_statement()
                       ] )
+    }
+
+    fn parse_set(&mut self) -> Result<Statement, ParseError> {
+        self.expect("set")?;
+        let target = self.parse_expr()?;
+        self.expect("=")?;
+        let new_value = self.parse_expr()?;
+        Ok(Statement::Set { target, new_value })
     }
 
     fn parse_let(&mut self) -> Result<Statement, ParseError> {
@@ -23,10 +30,12 @@ impl<'a> Input<'a> {
         match self.expect(":") {
             Ok(_) => {
                 let value_type = self.parse_type()?;
+                self.expect("=")?;
                 let expr = self.parse_expr()?;
                 Ok(Statement::Let { name, value_type, expr })
             },
             Err(_) => {
+                self.expect("=")?;
                 let expr = self.parse_expr()?;
                 Ok(Statement::Let { name, value_type: Type::Infer, expr })
             },
