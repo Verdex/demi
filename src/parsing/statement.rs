@@ -6,20 +6,20 @@ use super::input::Input;
 impl<'a> Input<'a> {
 
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
-        fn parse_expr_statement(input : &mut Input) -> Result<Statement, ParseError> {
-            let expr = input.parse_expr()?;
-            input.expect(";")?;
-            Ok(Statement::Expr(expr))
-        }
         // TODO let
         // TODO match
         // TODO set
         // TODO foreach
         // TODO while
-        // TODO expression statement
         self.choice( &[ |input| input.parse_return() 
-                      , parse_expr_statement
+                      , |input| input.parse_expr_statement()
                       ] )
+    }
+
+    fn parse_expr_statement(&mut self) -> Result<Statement, ParseError> {
+        let expr = self.parse_expr()?;
+        self.expect(";")?;
+        Ok(Statement::Expr(expr))
     }
 
     fn parse_return(&mut self) -> Result<Statement, ParseError> {
