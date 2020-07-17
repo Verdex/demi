@@ -7,7 +7,6 @@ impl<'a> Input<'a> {
 
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
         // TODO match
-        // TODO foreach
         // TODO if-ifelse-else
         self.choice( &[ |input| input.parse_let() 
                       , |input| input.parse_set()
@@ -105,17 +104,17 @@ impl<'a> Input<'a> {
     fn parse_expr(&mut self) -> Result<Expr, ParseError> {
                       
         let expr = self.choice( &[ |input| Ok(Expr::Number(input.parse_number()?))
-                      , |input| Ok(Expr::PString(input.parse_string()?))
-                      , |input| input.parse_bool()
-                      , |input| input.parse_lambda()
-                      
-                      
-                      // TODO namespace symbol 
+                                 , |input| Ok(Expr::PString(input.parse_string()?))
+                                 , |input| input.parse_bool()
+                                 , |input| input.parse_lambda()
+                              
+                              
+                                 // TODO namespace symbol 
 
-                      // TODO This needs to be last? (or at least before anything that might be a symbol)
-                      , |input| Ok(Expr::Variable(input.parse_symbol()?))
-                      , |input| input.parse_paren_expr()
-                      ] )?;
+                                 // TODO This needs to be last? (or at least before anything that might be a symbol)
+                                 , |input| Ok(Expr::Variable(input.parse_symbol()?))
+                                 , |input| input.parse_paren_expr()
+                                 ] )?;
 
         self.parse_post_expr(expr)
     }
