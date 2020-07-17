@@ -10,13 +10,24 @@ impl<'a> Input<'a> {
         // TODO foreach
         // TODO if-ifelse-else
         // TODO while
-        // TODO break, continue
-        // TODO yield
         self.choice( &[ |input| input.parse_let() 
                       , |input| input.parse_set()
                       , |input| input.parse_return() 
+                      , |input| input.parse_yield()
                       , |input| input.parse_expr_statement()
+                      , |input| input.parse_break()
+                      , |input| input.parse_continue()
                       ] )
+    }
+
+    fn parse_continue(&mut self) -> Result<Statement, ParseError> {
+        self.expect("continue")?;
+        Ok(Statement::Continue)
+    }
+
+    fn parse_break(&mut self) -> Result<Statement, ParseError> {
+        self.expect("break")?;
+        Ok(Statement::Break)
     }
 
     fn parse_set(&mut self) -> Result<Statement, ParseError> {
@@ -52,6 +63,13 @@ impl<'a> Input<'a> {
         let expr = self.parse_expr()?;
         self.expect(";")?;
         Ok(Statement::Expr(expr))
+    }
+
+    fn parse_yield(&mut self) -> Result<Statement, ParseError> {
+        self.expect("yield")?;
+        let expr = self.maybe( |input| input.parse_expr() );
+        self.expect(";")?;
+        Ok(Statement::Yield(expr))
     }
 
     fn parse_return(&mut self) -> Result<Statement, ParseError> {

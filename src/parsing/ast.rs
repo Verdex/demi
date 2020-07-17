@@ -53,8 +53,11 @@ pub enum Expr {
 pub enum Statement {
     Expr(Expr),
     Return(Option<Expr>),    
+    Yield(Option<Expr>),
     Let { name : PSym, value_type : Type, expr : Expr },
     Set { target : Expr, new_value : Expr },
+    Break,
+    Continue,
 }
 
 #[derive(Debug)]
