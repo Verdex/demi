@@ -22,11 +22,13 @@ impl<'a> Input<'a> {
 
     fn parse_continue(&mut self) -> Result<Statement, ParseError> {
         self.expect("continue")?;
+        self.expect(";")?;
         Ok(Statement::Continue)
     }
 
     fn parse_break(&mut self) -> Result<Statement, ParseError> {
         self.expect("break")?;
+        self.expect(";")?;
         Ok(Statement::Break)
     }
 
