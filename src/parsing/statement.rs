@@ -24,6 +24,7 @@ impl<'a> Input<'a> {
         let target = self.parse_expr()?;
         self.expect("=")?;
         let new_value = self.parse_expr()?;
+        self.expect(";")?;
         Ok(Statement::Set { target, new_value })
     }
 
@@ -35,11 +36,13 @@ impl<'a> Input<'a> {
                 let value_type = self.parse_type()?;
                 self.expect("=")?;
                 let expr = self.parse_expr()?;
+                self.expect(";")?;
                 Ok(Statement::Let { name, value_type, expr })
             },
             Err(_) => {
                 self.expect("=")?;
                 let expr = self.parse_expr()?;
+                self.expect(";")?;
                 Ok(Statement::Let { name, value_type: Type::Infer, expr })
             },
         }
