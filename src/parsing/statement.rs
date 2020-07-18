@@ -7,7 +7,6 @@ impl<'a> Input<'a> {
 
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
         // TODO match
-        // TODO if-ifelse-else
         self.choice( &[ |input| input.parse_let() 
                       , |input| input.parse_if()
                       , |input| input.parse_elseif()
@@ -21,6 +20,10 @@ impl<'a> Input<'a> {
                       , |input| input.parse_break()
                       , |input| input.parse_continue()
                       ] )
+    }
+
+    fn parse_match(&mut self) -> Result<Statement, ParseError> {
+        Err(ParseError::ErrorAt(0, "".to_string()))
     }
 
     fn parse_elseif(&mut self) -> Result<Statement, ParseError> {

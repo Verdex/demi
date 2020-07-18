@@ -63,6 +63,20 @@ pub enum Statement {
     If { test : Expr, statements : Vec<Statement> },
     ElseIf { test : Expr, statements : Vec<Statement> },
     Else(Vec<Statement>),
+    Match { target : Expr, cases : Vec<MatchCase> },
+}
+
+#[derive(Debug)]
+pub struct MatchCase {
+    pattern : MatchPattern,
+    test : Option<Expr>,
+    statements : Vec<Statement>,
+}
+
+#[derive(Debug)]
+pub enum MatchPattern {
+    Wildcard,
+    Cons(PSym, Vec<MatchPattern>),
 }
 
 #[derive(Debug)]
