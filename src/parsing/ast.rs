@@ -68,9 +68,9 @@ pub enum Statement {
 
 #[derive(Debug)]
 pub struct MatchCase {
-    pattern : MatchPattern,
-    test : Option<Expr>,
-    statements : Vec<Statement>,
+    pub pattern : MatchPattern,
+    pub test : Option<Expr>,
+    pub statements : Vec<Statement>,
 }
 
 #[derive(Debug)]

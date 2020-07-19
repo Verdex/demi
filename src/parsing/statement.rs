@@ -6,8 +6,8 @@ use super::input::Input;
 impl<'a> Input<'a> {
 
     pub fn parse_statement(&mut self) -> Result<Statement, ParseError> {
-        // TODO match
         self.choice( &[ |input| input.parse_let() 
+                      , |input| input.parse_match()
                       , |input| input.parse_if()
                       , |input| input.parse_elseif()
                       , |input| input.parse_else()
@@ -23,7 +23,66 @@ impl<'a> Input<'a> {
     }
 
     fn parse_match(&mut self) -> Result<Statement, ParseError> {
-        Err(ParseError::ErrorAt(0, "".to_string()))
+        self.expect("match")?;
+        let target = self.parse_expr()?;
+        self.expect("{")?;
+        let cases = self.zero_or_more(|input| input.parse_case())?;
+        self.expect("}")?;
+        Ok(Statement::Match { target, cases })
+    }
+
+    fn parse_case(&mut self) -> Result<MatchCase, ParseError> {
+        let pattern = self.parse_pattern()?;
+
+        match self.expect("if") {
+            Ok(_) => {
+                let test = Some(self.parse_expr()?);
+                self.expect("=>")?;
+                match self.expect("{") {
+                    Ok(_) => {
+                        let statements = self.zero_or_more(|input| input.parse_statement())?; 
+                        self.expect("}")?;
+                        Ok(MatchCase { pattern, test, statements })
+                    },
+                    Err(_) => {
+                        let statements = vec![self.parse_statement()?];
+                        Ok(MatchCase { pattern, test: None, statements })
+                    },
+                }
+            },
+            Err(_) => { 
+                self.expect("=>")?;
+                match self.expect("{") {
+                    Ok(_) => {
+                        let statements = self.zero_or_more(|input| input.parse_statement())?; 
+                        self.expect("}")?;
+                        Ok(MatchCase { pattern, test: None, statements })
+                    },
+                    Err(_) => {
+                        let statements = vec![self.parse_statement()?];
+                        Ok(MatchCase { pattern, test: None, statements })
+                    },
+                }
+            },
+        }
+
+    }
+
+    fn parse_pattern(&mut self) -> Result<MatchPattern, ParseError> {
+        let sym = self.parse_symbol()?;
+
+        if sym.value == "_" {
+            return Ok(MatchPattern::Wildcard);
+        }
+        
+        match self.expect("(") {
+            Ok(_) => {
+                let items = self.list(|input| input.parse_pattern())?;
+                self.expect(")")?;
+                Ok(MatchPattern::Cons(sym, items))
+            }
+            Err(_) => Ok(MatchPattern::Cons(sym, vec![])), 
+        }
     }
 
     fn parse_elseif(&mut self) -> Result<Statement, ParseError> {
