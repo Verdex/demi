@@ -183,16 +183,22 @@ impl<'a> Input<'a> {
                                  , |input| Ok(Expr::PString(input.parse_string()?))
                                  , |input| input.parse_bool()
                                  , |input| input.parse_lambda()
-                              
-                              
-                                 // TODO namespace symbol 
-
-                                 // TODO This needs to be last? (or at least before anything that might be a symbol)
-                                 , |input| Ok(Expr::Variable(input.parse_symbol()?))
+                                 , |input| input.parse_variable() 
                                  , |input| input.parse_paren_expr()
                                  ] )?;
 
         self.parse_post_expr(expr)
+    }
+
+    fn parse_variable(&mut self) -> Result<Expr, ParseError> {
+        let namespace = self.zero_or_more(|input| {
+            let v = input.parse_symbol()?;
+            input.expect("::")?;
+            Ok(v)
+        })?;
+
+        let name = self.parse_symbol()?;
+        Ok(Expr::Variable { namespace, name })
     }
 
     fn parse_paren_expr(&mut self) -> Result<Expr, ParseError> {
@@ -377,7 +383,7 @@ mod test {
         };
 
         let var = match params.pop().unwrap() {
-            Expr::Variable(v) => v.value,
+            Expr::Variable { name, .. } => name.value,
             e => panic!("expected variable but found {:?}", e),
         };
 
@@ -389,13 +395,13 @@ mod test {
         };
 
         let var = match params.pop().unwrap() {
-            Expr::Variable(v) => v.value,
+            Expr::Variable { name, .. } => name.value,
             e => panic!("expected variable but found {:?}", e),
         };
 
         assert_eq!( var, "a" );
 
-        assert!( matches!(call, Expr::Variable(_)) );
+        assert!( matches!(call, Expr::Variable { .. }) );
 
         Ok(())
     }
