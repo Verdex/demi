@@ -442,4 +442,20 @@ match a.b()-c() {
         assert!( matches!( m, Statement::Match{..} ) );
         Ok(())
     }
+
+    #[test]
+    fn should_parse_namespaced_variable() -> Result<(), ParseError> {
+        let i = r#"alpha::beta::name"#.char_indices().collect::<Vec<(usize, char)>>();
+        let mut input = Input::new(&i);
+        let u = input.parse_expr()?;
+        let (ns, n) = match u {
+            Expr::Variable { namespace, name } => (namespace, name),
+            e => panic!("Expected variable but found {:?}", e),
+        };
+        assert_eq!( n.value, "name" );
+        assert_eq!( ns.len(), 2 );
+        assert_eq!( ns[0].value, "alpha" );
+        assert_eq!( ns[1].value, "beta" );
+        Ok(())
+    }
 }
