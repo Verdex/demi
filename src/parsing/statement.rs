@@ -34,38 +34,23 @@ impl<'a> Input<'a> {
     fn parse_case(&mut self) -> Result<MatchCase, ParseError> {
         let pattern = self.parse_pattern()?;
 
-        match self.expect("if") {
+        let test = self.maybe(|input| {
+            input.expect("if")?;
+            input.parse_expr()
+        });
+
+        self.expect("=>")?;
+        match self.expect("{") {
             Ok(_) => {
-                let test = Some(self.parse_expr()?);
-                self.expect("=>")?;
-                match self.expect("{") {
-                    Ok(_) => {
-                        let statements = self.zero_or_more(|input| input.parse_statement())?; 
-                        self.expect("}")?;
-                        Ok(MatchCase { pattern, test, statements })
-                    },
-                    Err(_) => {
-                        let statements = vec![self.parse_statement()?];
-                        Ok(MatchCase { pattern, test: None, statements })
-                    },
-                }
+                let statements = self.zero_or_more(|input| input.parse_statement())?; 
+                self.expect("}")?;
+                Ok(MatchCase { pattern, test, statements })
             },
-            Err(_) => { 
-                self.expect("=>")?;
-                match self.expect("{") {
-                    Ok(_) => {
-                        let statements = self.zero_or_more(|input| input.parse_statement())?; 
-                        self.expect("}")?;
-                        Ok(MatchCase { pattern, test: None, statements })
-                    },
-                    Err(_) => {
-                        let statements = vec![self.parse_statement()?];
-                        Ok(MatchCase { pattern, test: None, statements })
-                    },
-                }
+            Err(_) => {
+                let statements = vec![self.parse_statement()?];
+                Ok(MatchCase { pattern, test, statements })
             },
         }
-
     }
 
     fn parse_pattern(&mut self) -> Result<MatchPattern, ParseError> {
